@@ -9,26 +9,28 @@ class RedisClient:
 
     def __init_app(self, app):
         try:
-            # Construindo a URL do Redis com os parâmetros do config.ini
-            redis_host = app.config.get('REDIS_HOST', 'localhost')
-            redis_port = app.config.get('REDIS_PORT', 6379)
-            redis_db = app.config.get('REDIS_DB', 0)
-            redis_user = app.config.get('REDIS_USER', 'default')
-            redis_password = app.config.get('REDIS_PASSWORD', 'redis123')
+            # Comentado para evitar erro de inicialização sem Redis
+            # # Construindo a URL do Redis com os parâmetros do config.ini
+            # redis_host = app.config.get('REDIS_HOST', 'localhost')
+            # redis_port = app.config.get('REDIS_PORT', 6379)
+            # redis_db = app.config.get('REDIS_DB', 0)
+            # redis_user = app.config.get('REDIS_USER', 'default')
+            # redis_password = app.config.get('REDIS_PASSWORD', 'redis123')
+            # 
+            # # Montando a URL do Redis
+            # redis_url = f"redis://{redis_user}:{quote_plus(redis_password)}@{redis_host}:{redis_port}/{redis_db}"
+            # 
+            # self.__redis = redis.Redis.from_url(redis_url, decode_responses=True)
+            # # Testa a conexão
+            # self.__redis.ping()
+            # print("Redis conectado com sucesso!")
             
-            # Montando a URL do Redis
-            redis_url = f"redis://{redis_user}:{quote_plus(redis_password)}@{redis_host}:{redis_port}/{redis_db}"
-            
-            self.__redis = redis.Redis.from_url(redis_url, decode_responses=True)
-            # Testa a conexão
-            self.__redis.ping()
-            print("Redis conectado com sucesso!")
-        except redis.ConnectionError as e:
-            print(f"Erro ao conectar ao Redis: {e}")
-            # Fallback para um cache em memória simples se o Redis não estiver disponível
+            # Usar diretamente o fallback de dicionário
+            print("Redis não configurado ou indisponível. Usando cache em memória.")
             self.__redis = {}
-        except Exception as e:
-            print(f"Erro inesperado ao conectar ao Redis: {e}")
+            
+        except Exception as e: # Captura qualquer exceção durante a tentativa (agora comentada)
+            print(f"Erro inesperado ao configurar Redis (fallback ativo): {e}")
             self.__redis = {}
 
     def set(self, key, value, ex=None):
