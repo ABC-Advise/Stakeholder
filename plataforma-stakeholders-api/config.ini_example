@@ -1,0 +1,25 @@
+[General]
+secret_key = example
+encryption_key = example
+token_expires = 200
+debug = True
+log_mode = INFO
+log_count = 90
+
+[Redis]
+host = example
+port = example
+database = example
+user = example
+password = example
+
+[PostgreSQL]
+host = example
+port = example
+database = example
+user = example
+password = example
+
+[Google]
+client_id = example
+client_secret = example
