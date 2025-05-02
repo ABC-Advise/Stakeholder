@@ -1,0 +1,16 @@
+nohup: ignoring input
+
+> plataforma-stakeholders-web@0.1.0 dev /home/ec2-user/Stakeholder/plataforma-stakeholder-frontend
+> next dev
+
+- ready started server on 0.0.0.0:3000, url: http://localhost:3000
+- [36minfo[39m Loaded env from /home/ec2-user/Stakeholder/plataforma-stakeholder-frontend/.env
+- [35mevent[39m compiled client and server successfully in 1462 ms (20 modules)
+- [36mwait[39m compiling...
+- [35mevent[39m compiled client and server successfully in 264 ms (20 modules)
+- [36mwait[39m compiling /(app)/page (client and server)...
+- [35mevent[39m compiled client and server successfully in 10.7s (3560 modules)
+- [36mwait[39m compiling...
+- [35mevent[39m compiled successfully in 1628 ms (3055 modules)
+- [36mwait[39m compiling /favicon.ico/route (client and server)...
+- [35mevent[39m compiled successfully in 3.7s (573 modules)

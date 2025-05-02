@@ -1,0 +1,28 @@
+17:35:34 Worker rq:worker:1339cb020e5644bfb82cda57bc3e80b3 started with PID 83880, version 2.3.2
+17:35:34 Subscribing to channel rq:pubsub:1339cb020e5644bfb82cda57bc3e80b3
+17:35:34 *** Listening on default...
+17:35:34 Cleaning registries for queue: default
+17:37:03 default: app.modules.tasks.tarefa_consulta('redis://default:@localhost:6379/0', '17651318000135', 21, True, True, False, False, False) (21)
+17:37:03 [Job 21]: exception raised while executing (app.modules.tasks.tarefa_consulta)
+Traceback (most recent call last):
+  File "/home/ec2-user/Stakeholder/plataforma-stakeholders-api/venv/lib64/python3.9/site-packages/rq/utils.py", line 127, in import_attribute
+    return __builtins__[name]  # type: ignore[index]
+KeyError: 'app.modules.tasks.tarefa_consulta'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ec2-user/Stakeholder/plataforma-stakeholders-api/venv/lib64/python3.9/site-packages/rq/worker.py", line 1643, in perform_job
+    return_value = job.perform()
+  File "/home/ec2-user/Stakeholder/plataforma-stakeholders-api/venv/lib64/python3.9/site-packages/rq/job.py", line 1344, in perform
+    self._result = self._execute()
+  File "/home/ec2-user/Stakeholder/plataforma-stakeholders-api/venv/lib64/python3.9/site-packages/rq/job.py", line 1378, in _execute
+    result = self.func(*self.args, **self.kwargs)
+  File "/home/ec2-user/Stakeholder/plataforma-stakeholders-api/venv/lib64/python3.9/site-packages/rq/job.py", line 505, in func
+    return import_attribute(self.func_name)
+  File "/home/ec2-user/Stakeholder/plataforma-stakeholders-api/venv/lib64/python3.9/site-packages/rq/utils.py", line 129, in import_attribute
+    raise ValueError(f'Invalid attribute name: {name}')
+ValueError: Invalid attribute name: app.modules.tasks.tarefa_consulta
+
+17:40:11 Worker 1339cb020e5644bfb82cda57bc3e80b3 [PID 83880]: warm shut down requested
+17:40:11 Unsubscribing from channel rq:pubsub:1339cb020e5644bfb82cda57bc3e80b3

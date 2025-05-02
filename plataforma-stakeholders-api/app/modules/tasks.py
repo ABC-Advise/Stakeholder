@@ -36,13 +36,13 @@ def tarefa_consulta(redis_url, documento, consulta_id, em_prospeccao, camada_sta
             
             # Processa a camada de stakeholder, se necessário
             if camada_stakeholder:
-                consulta_stakeholder = ConsultaStakeholder(documento, consulta_id, local_tests=True, em_prospecao=em_prospeccao, save_requests=False, logger=logger)
+                consulta_stakeholder = ConsultaStakeholder(documento, consulta_id, local_tests=False, em_prospecao=em_prospeccao, save_requests=False, logger=logger)
                 consulta_stakeholder.start()
                 consulta_stakeholder.save()
 
             # Processa a camada de advogados, se necessário
             if camada_advogados:
-                analise = AnaliseJuridica(documento, consulta_id, local_tests=True, save_requests=False, is_stakeholder_advogado=stakeholder_advogado, logger=logger)
+                analise = AnaliseJuridica(documento, consulta_id, local_tests=False, save_requests=False, is_stakeholder_advogado=stakeholder_advogado, logger=logger)
                 analise.start()
                 analise.save()
 
@@ -53,9 +53,9 @@ def tarefa_consulta(redis_url, documento, consulta_id, em_prospeccao, camada_sta
                                 advogado.oabs[0].numero,
                                 advogado.oabs[0].uf,
                                 consulta_id,
-                                local_tests=True,
+                                local_tests=False,
                                 save_requests=False,
-                                directdata_local=True,
+                                directdata_local=False,
                                 logger=logger
                             )
                             analise_advogado.start()
