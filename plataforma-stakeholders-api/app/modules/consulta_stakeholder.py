@@ -534,6 +534,7 @@ class ConsultaStakeholder:
     def __get_pessoa_fisica(self, cpf, camadas_sociedade, camadas_parentescos, cnpj_sociedade=None, lazy_start=False):
         # Formatar o CPF para remover caracteres especiais
         cpf_formatado = format_cpf(cpf)
+        pessoa_fisica = None # Inicializa a variável
 
         # Verificar se já consultamos esse CPF
         if cpf_formatado in self.__consultados.keys():
