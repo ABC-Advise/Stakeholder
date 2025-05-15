@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
-from src.services.profile_validator import ProfileValidator, normalizar
+from src.services.profile_validator import ProfileValidator
 
 @pytest.fixture
 def validator():
@@ -76,7 +76,6 @@ def test_validar_segmento_bio_vazia(validator: ProfileValidator):
     validator.session.execute.assert_called_once()
 
 def test_validar_segmento_descricao_e_stopword_mas_encontrado_fallback(validator: ProfileValidator):
-
     validator.session.execute = mock_db_execute("e") 
     bio = "Teste e mais testes" 
     assert validator.validar_segmento(segmento_id=6, bio=bio) is True
@@ -117,7 +116,7 @@ def test_validar_perfil_empresa_completo(validator):
     original_validar_segmento = validator.validar_segmento
     
     def mock_segmento_para_completo(seg_id, bio_text):
-        if seg_id == 26 and "obras" in normalizar(bio_text): 
+        if seg_id == 26 and "obras" in validator.normalizar(bio_text): 
              return True
         return False 
 
@@ -145,4 +144,70 @@ def test_validar_perfil_empresa_sem_match(validator):
     ]
     resultado = validator.validar_perfil_empresa(empresa, perfis)
     assert resultado is None
+
+@pytest.mark.asyncio
+async def test_validar_perfil_empresa():
+    validator = ProfileValidator()
+    
+    # Dados de teste
+    empresa = {
+        "nome_fantasia": "Empresa Teste",
+        "segmento_id": 1
+    }
+    
+    perfis_instagram = [
+        {
+            "username": "empresateste",
+            "full_name": "Empresa Teste",
+            "bio": "Empresa de tecnologia",
+            "is_private": False,
+            "is_business": True
+        },
+        {
+            "username": "outro_usuario",
+            "full_name": "Outro Nome",
+            "bio": "Outra bio",
+            "is_private": False,
+            "is_business": False
+        }
+    ]
+    
+    # Testa a validação
+    perfil_valido, todos_perfis = await validator.validar_perfil_empresa(empresa, perfis_instagram)
+    
+    # Verifica se o perfil correto foi selecionado
+    assert perfil_valido is not None
+    assert perfil_valido["perfil"]["username"] == "empresateste"
+    assert perfil_valido["score"] > 0
+    
+    # Verifica se todos os perfis foram processados
+    assert len(todos_perfis) == 2
+
+@pytest.mark.asyncio
+async def test_validar_perfil_empresa_privado():
+    validator = ProfileValidator()
+    
+    # Dados de teste
+    empresa = {
+        "nome_fantasia": "Empresa Teste",
+        "segmento_id": 1
+    }
+    
+    perfis_instagram = [
+        {
+            "username": "empresateste",
+            "full_name": "Empresa Teste",
+            "bio": "Empresa de tecnologia",
+            "is_private": True,
+            "is_business": True
+        }
+    ]
+    
+    # Testa a validação
+    perfil_valido, todos_perfis = await validator.validar_perfil_empresa(empresa, perfis_instagram)
+    
+    # Verifica se o perfil privado foi descartado
+    assert perfil_valido is None
+    assert len(todos_perfis) == 1
+    assert todos_perfis[0]["score"] == 0
 

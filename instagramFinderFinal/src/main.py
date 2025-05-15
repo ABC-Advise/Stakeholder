@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+import os
+import platform
+import psutil
 
 # Importar routers da API
 from src.api.v1.endpoints import profiles as profiles_v1
@@ -9,17 +12,22 @@ from src.routes.profile_finder_routes import router as profile_finder_router
 # Carrega as variáveis de ambiente
 load_dotenv()
 
+# Configuração do CORS
+BACKEND_CORS_ORIGINS = os.getenv(
+    "BACKEND_CORS_ORIGINS",
+    "http://localhost:3000,http://localhost:8000"
+).split(",")
+
 app = FastAPI(
     title="Instagram Profile Finder API",
     description="API para buscar e validar perfis do Instagram.",
     version="0.1.0"
 )
 
-# Configurar CORS (Cross-Origin Resource Sharing)
-# Permite que seu front-end (mesmo em outro domínio/porta) acesse a API.
+# Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Em produção, restrinja para o domínio do seu front-end
+    allow_origins=[origin.strip() for origin in BACKEND_CORS_ORIGINS],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
@@ -27,12 +35,26 @@ app.add_middleware(
 
 @app.get("/health", tags=["Health"])
 async def health_check():
-    """Verifica a saúde da API."""
-    return {"status": "ok"}
+    """Verifica a saúde da API e retorna informações do sistema."""
+    return {
+        "status": "ok",
+        "version": "0.1.0",
+        "environment": os.getenv("ENVIRONMENT", "development"),
+        "system": {
+            "platform": platform.system(),
+            "python_version": platform.python_version(),
+            "memory_usage": f"{psutil.Process().memory_info().rss / 1024 / 1024:.2f} MB",
+            "cpu_percent": psutil.cpu_percent()
+        }
+    }
 
 @app.get("/")
 async def root():
-    return {"message": "Bem-vindo à API do Instagram Finder"}
+    return {
+        "message": "Bem-vindo à API do Instagram Finder",
+        "docs_url": "/docs",
+        "health_check": "/health"
+    }
 
 # Incluir routers da API
 app.include_router(profiles_v1.router, prefix="/api/v1", tags=["Profiles V1"])
@@ -40,4 +62,5 @@ app.include_router(profile_finder_router, prefix="/api/v1", tags=["Profile Finde
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port) 

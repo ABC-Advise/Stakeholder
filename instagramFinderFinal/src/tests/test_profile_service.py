@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import Mock, patch
-from ..services.profile_service import ProfileService
-from ..repositories.hiker_repository import HikerRepository
-from ..repositories.postgres_repository import PostgresRepository
+from src.services.profile_service import ProfileService
+from src.repositories.hiker_repository import HikerRepository
+from src.repositories.postgres_repository import PostgresRepository
 
 @pytest.fixture
 def mock_hiker_repository():
@@ -95,31 +95,44 @@ async def test_get_profile_details(profile_service, mock_hiker_repository, mock_
     mock_hiker_repository.get_profile_details.assert_called_once_with(profile["id"])
 
 @pytest.mark.asyncio
-async def test_list_profiles(profile_service, mock_postgres_repository):
-    # Arrange
-    profiles = [
-        {
-            "id": 1,
-            "username": "user1",
-            "full_name": "User One",
-            "followers_count": 1000,
-            "following_count": 500,
-            "bio": "Bio 1"
-        },
-        {
-            "id": 2,
-            "username": "user2",
-            "full_name": "User Two",
-            "followers_count": 2000,
-            "following_count": 1000,
-            "bio": "Bio 2"
-        }
-    ]
+async def test_list_profiles():
+    # Mock dos repositórios
+    mock_hiker_repository = Mock(spec=HikerRepository)
+    mock_postgres_repository = Mock(spec=PostgresRepository)
+    
+    # Configuração do mock
+    profiles = [{"id": 1, "username": "test1"}, {"id": 2, "username": "test2"}]
     mock_postgres_repository.list_profiles.return_value = profiles
-
-    # Act
-    result = await profile_service.list_profiles(limit=10, offset=0)
-
-    # Assert
+    
+    # Criação do serviço com os mocks
+    service = ProfileService(
+        hiker_repository=mock_hiker_repository,
+        postgres_repository=mock_postgres_repository
+    )
+    
+    # Teste
+    result = await service.list_profiles(10, 0)
+    
+    # Verificações
     assert result == profiles
-    mock_postgres_repository.list_profiles.assert_called_once_with(10, 0) 
+    mock_postgres_repository.list_profiles.assert_called_once_with(10, 0)
+
+@pytest.mark.asyncio
+async def test_profile_service():
+    service = ProfileService()
+    
+    # Dados de teste
+    profile_data = {
+        "username": "testuser",
+        "full_name": "Test User",
+        "bio": "Test bio",
+        "is_private": False
+    }
+    
+    # Testa o serviço
+    result = await service.process_profile(profile_data)
+    
+    # Verifica o resultado
+    assert result is not None
+    assert result["username"] == "testuser"
+    assert result["full_name"] == "Test User" 

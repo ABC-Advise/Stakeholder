@@ -1,26 +1,37 @@
-# Instagram Finder
+# Instagram Profile Finder API
 
-Este projeto é uma aplicação Python para busca de perfis no Instagram utilizando a Hiker API.
+API para busca e validação de perfis do Instagram.
 
-## Requisitos
+## 🚀 Tecnologias
 
-- Python 3.8+
+- Python 3.9+
+- FastAPI
 - PostgreSQL
-- Chave de API da Hiker
+- Redis
+- Docker
+- Railway (Deploy)
 
-## Instalação
+## 📋 Pré-requisitos
+
+- Python 3.9 ou superior
+- PostgreSQL
+- Redis
+- Docker (opcional)
+
+## 🔧 Instalação
 
 1. Clone o repositório:
 ```bash
-git clone [url-do-repositorio]
+git clone https://github.com/seu-usuario/instagram-finder.git
 cd instagram-finder
 ```
 
-2. Crie um ambiente virtual:
+2. Crie e ative um ambiente virtual:
 ```bash
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
+# ou
+.\venv\Scripts\activate  # Windows
 ```
 
 3. Instale as dependências:
@@ -28,28 +39,82 @@ venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 ```
 
-4. Configure o arquivo .env:
-- Copie o arquivo `.env.example` para `.env`
-- Preencha as variáveis de ambiente com suas credenciais
-
-5. Configure o banco de dados:
+4. Configure as variáveis de ambiente:
 ```bash
-python src/config/database.py
+cp .env.example .env
+# Edite o arquivo .env com suas configurações
 ```
 
-## Executando a aplicação
+## 🏃‍♂️ Executando localmente
 
-Para iniciar o servidor de desenvolvimento:
+1. Inicie o servidor de desenvolvimento:
 ```bash
 uvicorn src.main:app --reload
 ```
 
-## Testes
+2. Acesse a documentação da API:
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
 
-Para executar os testes:
+## 🐳 Executando com Docker
+
+1. Construa a imagem:
+```bash
+docker build -t instagram-finder .
+```
+
+2. Execute o container:
+```bash
+docker run -p 8000:8000 instagram-finder
+```
+
+## 🚀 Deploy no Railway
+
+1. Crie uma conta no [Railway](https://railway.app/)
+
+2. Crie um novo projeto e conecte com seu repositório GitHub
+
+3. Configure as variáveis de ambiente no Railway:
+   - DATABASE_URL
+   - REDIS_URL
+   - SECRET_KEY
+   - JWT_SECRET_KEY
+   - BACKEND_CORS_ORIGINS
+   - ENVIRONMENT=production
+   - Outras variáveis necessárias
+
+4. Adicione um banco de dados PostgreSQL no Railway
+
+5. Faça o deploy
+
+## 📝 Variáveis de Ambiente
+
+Veja o arquivo `.env.example` para todas as variáveis necessárias.
+
+## 🧪 Testes
+
+Execute os testes:
 ```bash
 pytest
 ```
+
+## 📚 Documentação
+
+A documentação completa da API está disponível em:
+- Swagger UI: `/docs`
+- ReDoc: `/redoc`
+
+## 🤝 Contribuindo
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
 ## Estrutura do Projeto
 
