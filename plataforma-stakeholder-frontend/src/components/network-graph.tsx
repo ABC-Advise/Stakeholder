@@ -47,6 +47,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Settings, ChevronsRight, ChevronsLeft } from 'lucide-react'
+import Link from 'next/link'
 
 type Links = {
   source: string
@@ -561,11 +562,37 @@ export const NetworkGraph: FC<
                       <Separator />
                       <h2 className="font-medium">Detalhes de contato</h2>
                       <div className="space-y-1">
-                        <span className="text-sm font-medium">Instagram</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">Instagram</span>
+                          {(() => {
+                            let id = '';
+                            let tipo = '';
+                            if (selectedNodeData.type === 'Empresa' && data.cnpj) {
+                              id = data.cnpj;
+                              tipo = 'empresa';
+                            } else if (selectedNodeData.type === 'Pessoa' && data.cpf) {
+                              id = data.cpf;
+                              tipo = 'pessoa';
+                            } else if (selectedNodeData.type === 'Advogado') {
+                              if (data.cpf && data.cpf.trim() !== '' && data.cpf !== 'None') {
+                                id = data.cpf;
+                              } else if (data.oab && data.oab.trim() !== '' && data.oab !== 'None') {
+                                id = data.oab;
+                              }
+                              tipo = 'advogado';
+                            }
+                            if (id && tipo) {
+                              return (
+                                <Link href={`/instagram-search/relacionados?id=${encodeURIComponent(id)}&type=${tipo}`} passHref legacyBehavior>
+                                  <Button variant="outline" size="sm" className="ml-1">Buscar Relacionados</Button>
+                                </Link>
+                              );
+                            }
+                            return null;
+                          })()}
+                        </div>
                         <p className="text-sm text-muted-foreground">
-                          {data.instagram !== 'None'
-                            ? data.instagram
-                            : 'Não informado'}
+                          {data.instagram !== 'None' ? data.instagram : 'Não informado'}
                         </p>
                       </div>
                       <div className="space-y-1">
@@ -620,11 +647,30 @@ export const NetworkGraph: FC<
                       <Separator />
                       <h2 className="font-medium">Detalhes de contato</h2>
                       <div className="space-y-1">
-                        <span className="text-sm font-medium">Instagram</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">Instagram</span>
+                          {(() => {
+                            let id = '';
+                            let tipo = '';
+                            if (selectedNodeData.type === 'Empresa' && data.cnpj) {
+                              id = data.cnpj;
+                              tipo = 'empresa';
+                            } else if ((selectedNodeData.type === 'Pessoa' || selectedNodeData.type === 'Advogado') && data.cpf) {
+                              id = data.cpf;
+                              tipo = selectedNodeData.type.toLowerCase();
+                            }
+                            if (id && tipo) {
+                              return (
+                                <Link href={`/instagram-search/relacionados?id=${encodeURIComponent(id)}&type=${tipo}`} passHref legacyBehavior>
+                                  <Button variant="outline" size="sm" className="ml-1">Buscar Relacionados</Button>
+                                </Link>
+                              );
+                            }
+                            return null;
+                          })()}
+                        </div>
                         <p className="text-sm text-muted-foreground">
-                          {data.instagram !== 'None'
-                            ? data.instagram
-                            : 'Não informado'}
+                          {data.instagram !== 'None' ? data.instagram : 'Não informado'}
                         </p>
                       </div>
                       <div className="space-y-1">
@@ -762,11 +808,30 @@ export const NetworkGraph: FC<
 
                       <h2 className="font-medium">Detalhes de contato</h2>
                       <div className="space-y-1">
-                        <span className="text-sm font-medium">Instagram</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">Instagram</span>
+                          {(() => {
+                            let id = '';
+                            let tipo = '';
+                            if (selectedNodeData.type === 'Empresa' && data.cnpj) {
+                              id = data.cnpj;
+                              tipo = 'empresa';
+                            } else if ((selectedNodeData.type === 'Pessoa' || selectedNodeData.type === 'Advogado') && data.cpf) {
+                              id = data.cpf;
+                              tipo = selectedNodeData.type.toLowerCase();
+                            }
+                            if (id && tipo) {
+                              return (
+                                <Link href={`/instagram-search/relacionados?id=${encodeURIComponent(id)}&type=${tipo}`} passHref legacyBehavior>
+                                  <Button variant="outline" size="sm" className="ml-1">Buscar Relacionados</Button>
+                                </Link>
+                              );
+                            }
+                            return null;
+                          })()}
+                        </div>
                         <p className="text-sm text-muted-foreground">
-                          {data.instagram !== 'None'
-                            ? data.instagram
-                            : 'Não informado'}
+                          {data.instagram !== 'None' ? data.instagram : 'Não informado'}
                         </p>
                       </div>
                       <div className="space-y-1">
@@ -862,11 +927,30 @@ export const NetworkGraph: FC<
 
                       <h2 className="font-medium">Detalhes de contato</h2>
                       <div className="space-y-1">
-                        <span className="text-sm font-medium">Instagram</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">Instagram</span>
+                          {(() => {
+                            let id = '';
+                            let tipo = '';
+                            if (selectedNodeData.type === 'Empresa' && data.cnpj) {
+                              id = data.cnpj;
+                              tipo = 'empresa';
+                            } else if ((selectedNodeData.type === 'Pessoa' || selectedNodeData.type === 'Advogado') && data.cpf) {
+                              id = data.cpf;
+                              tipo = selectedNodeData.type.toLowerCase();
+                            }
+                            if (id && tipo) {
+                              return (
+                                <Link href={`/instagram-search/relacionados?id=${encodeURIComponent(id)}&type=${tipo}`} passHref legacyBehavior>
+                                  <Button variant="outline" size="sm" className="ml-1">Buscar Relacionados</Button>
+                                </Link>
+                              );
+                            }
+                            return null;
+                          })()}
+                        </div>
                         <p className="text-sm text-muted-foreground">
-                          {data.instagram !== 'None'
-                            ? data.instagram
-                            : 'Não informado'}
+                          {data.instagram !== 'None' ? data.instagram : 'Não informado'}
                         </p>
                       </div>
                       <div className="space-y-1">

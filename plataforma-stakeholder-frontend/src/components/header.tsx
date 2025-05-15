@@ -162,6 +162,8 @@ export function Header() {
           <NavLink href="/pessoas">Pessoas</NavLink>
           <NavLink href="/projetos">Projetos</NavLink>
           <NavLink href="/logs">Consultas</NavLink>
+          <NavLink href="/instagram-search">Busca Instagram</NavLink>
+          <NavLink href="/instagram-search/relacionados">Relacionados Instagram</NavLink>
         </div>
       </div>
 
