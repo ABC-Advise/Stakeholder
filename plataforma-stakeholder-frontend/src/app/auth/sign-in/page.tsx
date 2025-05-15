@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { getServerSession } from 'next-auth'
+import Link from 'next/link'
 
 import Logo from '@/assets/logo.svg'
 
