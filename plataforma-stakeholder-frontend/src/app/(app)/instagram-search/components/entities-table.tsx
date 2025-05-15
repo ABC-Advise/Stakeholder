@@ -101,11 +101,11 @@ export function EntitiesTable({ data, onSearchIndividual, isLoading, tipo }: Ent
                 const isRowLoading = internalLoading[entidade.id] || false;
                 // Função para redirecionar para busca por identificador
                 const handleRedirectByIdentifier = () => {
+                    let tipoEntidade = (tipo || '').trim();
                     let identifier = '';
-                    let tipoEntidade = tipo;
-                    if (tipo === 'empresa') identifier = entidade.cnpj || '';
-                    else if (tipo === 'pessoa') identifier = entidade.cpf || '';
-                    else if (tipo === 'advogado') identifier = entidade.oab || '';
+                    if (tipoEntidade === 'empresa') identifier = (entidade.cnpj || '').trim();
+                    else if (tipoEntidade === 'pessoa') identifier = (entidade.cpf || '').trim();
+                    else if (tipoEntidade === 'advogado') identifier = (entidade.cpf || entidade.oab || '').trim();
                     if (!identifier) return;
                     // Redireciona para a rota de busca por identificador
                     router.push(`/instagram-search/${tipoEntidade}/${identifier}`);

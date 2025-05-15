@@ -82,6 +82,13 @@ export interface PaginatedEntities {
     limite: number;
 }
 
+export interface CaminhoResultado {
+    origem: string;
+    alvo: string;
+    caminhos: string[][];
+    quantidade: number;
+}
+
 // --- Serviço da API --- //
 
 export const instagramService = {
@@ -282,6 +289,44 @@ export const instagramService = {
     ): Promise<any> => {
         const response = await instagramApi.post('/search-names-in-followers', names_to_find, {
             params: { target_username, similarity_threshold },
+        });
+        return response.data;
+    },
+
+    /**
+     * Busca todos os menores caminhos (BFS) entre dois usuários do Instagram.
+     * Usa: GET /caminhos/bfs?username_origem=X&username_alvo=Y&max_search_depth=Z
+     */
+    buscarCaminhosBFS: async (
+        usernameOrigem: string,
+        usernameAlvo: string,
+        maxSearchDepth: number = 5
+    ): Promise<CaminhoResultado> => {
+        const response = await instagramApi.get<CaminhoResultado>('/caminhos/bfs', {
+            params: {
+                username_origem: usernameOrigem,
+                username_alvo: usernameAlvo,
+                max_search_depth: maxSearchDepth
+            }
+        });
+        return response.data;
+    },
+
+    /**
+     * Busca todos os caminhos (DFS) entre dois usuários do Instagram.
+     * Usa: GET /caminhos/dfs?username_origem=X&username_alvo=Y&max_search_depth=Z
+     */
+    buscarCaminhosDFS: async (
+        usernameOrigem: string,
+        usernameAlvo: string,
+        maxSearchDepth: number = 5
+    ): Promise<CaminhoResultado> => {
+        const response = await instagramApi.get<CaminhoResultado>('/caminhos/dfs', {
+            params: {
+                username_origem: usernameOrigem,
+                username_alvo: usernameAlvo,
+                max_search_depth: maxSearchDepth
+            }
         });
         return response.data;
     },

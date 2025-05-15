@@ -9,29 +9,20 @@ def listar_tabelas():
     
     # Lista de tabelas conhecidas para testar
     tabelas_conhecidas = [
-        "test_perfis",
-        "test_seguidores",
-        "metricas_post",
-        "vector_news",
-        "noticias_coreia",
-        "documents"
+        "perfis",
+        "seguidores"
     ]
     
     print("\n📋 Testando tabelas conhecidas:")
     for tabela in tabelas_conhecidas:
         try:
             table = get_supabase_table(tabela)
-            # Tenta fazer uma consulta simples para verificar se a tabela existe
-            response = table.select("count").limit(1).execute()
-            print(f"✅ Tabela '{tabela}' existe e está acessível")
-            
-            # Tenta listar as primeiras linhas para ver a estrutura
-            sample = table.select("*").limit(1).execute()
+            # Consulta limitada para evitar timeout
+            sample = table.select("*").limit(5).execute()
             if sample.data:
-                print(f"   Colunas disponíveis: {list(sample.data[0].keys())}")
+                print(f"✅ Tabela '{tabela}' existe e está acessível. Exemplo de dados: {sample.data}")
             else:
-                print(f"   Tabela vazia")
-                
+                print(f"✅ Tabela '{tabela}' existe, mas está vazia ou não retornou dados.")
         except Exception as e:
             print(f"❌ Tabela '{tabela}' não existe ou não está acessível: {str(e)}")
 
@@ -39,53 +30,49 @@ def buscar_id_por_username_supabase(username):
     print(f"\n🔍 Buscando username: {username}")
     print(f"📊 Schema: {SUPABASE_SCHEMA}")
     
-    # Primeiro, vamos verificar na tabela test_perfis
-    print("\n📋 Verificando tabela test_perfis:")
-    table_perfis = get_supabase_table("test_perfis")
+    # Primeiro, vamos verificar na tabela perfis
+    print("\n📋 Verificando tabela perfis:")
+    table_perfis = get_supabase_table("perfis")
     
-    # Contar total de registros
-    count = table_perfis.select("count").execute()
-    print(f"   Total de registros: {count.data[0]['count'] if count.data else 0}")
-    
-    # Ver alguns exemplos
-    print("\n📝 Exemplos de usernames na tabela test_perfis:")
+    # Ver alguns exemplos (limitado)
+    print("\n📝 Exemplos de usernames na tabela perfis:")
     sample = table_perfis.select("username").limit(5).execute()
     if sample.data:
         print("   Primeiros 5 usernames:")
         for row in sample.data:
             print(f"   - {row['username']}")
+    else:
+        print("   Nenhum username encontrado ou erro na consulta.")
     
-    # Busca exata em test_perfis
-    print(f"\n🔎 Buscando username exato em test_perfis: {username}")
-    response = table_perfis.select("id, username").eq("username", username).execute()
+    # Busca exata em perfis
+    print(f"\n🔎 Buscando username exato em perfis: {username}")
+    response = table_perfis.select("id, username").eq("username", username).limit(5).execute()
     print(f"📥 Resposta completa: {response.data}")
     
     if response.data:
         return response.data[0]["id"]
     
-    # Se não encontrou em test_perfis, vamos verificar em test_seguidores
-    print("\n📋 Verificando tabela test_seguidores:")
-    table_seguidores = get_supabase_table("test_seguidores")
+    # Se não encontrou em perfis, vamos verificar em seguidores
+    print("\n📋 Verificando tabela seguidores:")
+    table_seguidores = get_supabase_table("seguidores")
     
-    # Contar total de registros
-    count = table_seguidores.select("count").execute()
-    print(f"   Total de registros: {count.data[0]['count'] if count.data else 0}")
-    
-    # Ver alguns exemplos
-    print("\n📝 Exemplos de usernames na tabela test_seguidores:")
+    # Ver alguns exemplos (limitado)
+    print("\n📝 Exemplos de usernames na tabela seguidores:")
     sample = table_seguidores.select("username_pai, username_filho").limit(5).execute()
     if sample.data:
         print("   Primeiros 5 registros:")
         for row in sample.data:
             print(f"   - Pai: {row['username_pai']}, Filho: {row['username_filho']}")
+    else:
+        print("   Nenhum registro encontrado ou erro na consulta.")
     
-    # Busca em test_seguidores
-    print(f"\n🔎 Buscando username em test_seguidores: {username}")
-    response = table_seguidores.select("id, username_pai, username_filho").or_(f"username_pai.eq.{username},username_filho.eq.{username}").execute()
+    # Busca em seguidores
+    print(f"\n🔎 Buscando username em seguidores: {username}")
+    response = table_seguidores.select("id, username_pai, username_filho").or_(f"username_pai.eq.{username},username_filho.eq.{username}").limit(5).execute()
     print(f"📥 Resposta completa: {response.data}")
     
     if response.data:
-        print("\n⚠️ Usuário encontrado na tabela test_seguidores!")
+        print("\n⚠️ Usuário encontrado na tabela seguidores!")
         return response.data[0]["id"]
     
     return None

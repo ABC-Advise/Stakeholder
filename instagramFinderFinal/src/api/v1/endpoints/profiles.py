@@ -18,9 +18,30 @@ import hashlib
 from datetime import datetime, timedelta
 import requests
 from src.utils.busca_historico import obter_ultimas_buscas, registrar_busca
+from src.services.find_path_refatorado import PathFinderConfig, SupabaseManager
+from src.services.redis_manager import RedisManager
+import time
+import asyncio
+from src.config import supabase_config
 
 CACHE_DIR = "./cache_busca"
 CACHE_EXPIRATION_MINUTES = 5
+
+# Singleton do SupabaseManager
+_supabase_manager = None
+
+def get_supabase_manager():
+    global _supabase_manager
+    if _supabase_manager is None:
+        redis_manager = RedisManager(
+            host=os.getenv('REDIS_HOST', 'localhost'),
+            port=int(os.getenv('REDIS_PORT', 6379)),
+            db=int(os.getenv('REDIS_DB', 0)),
+            password=os.getenv('REDIS_PASSWORD', None),
+            connect_timeout=int(os.getenv('REDIS_CONNECT_TIMEOUT', 2))
+        )
+        _supabase_manager = SupabaseManager(redis_manager)
+    return _supabase_manager
 
 def get_postgres_repository():
     return PostgresRepository()
@@ -600,5 +621,177 @@ async def find_related_entities_by_identifier(
     related = await postgres_repo.get_related_entities(entity_id, origin_type_id)
     registrar_busca(identifier, entity_type, 'concluida')
     return {"related_entities": related}
+
+@router.get(
+    "/caminhos/bfs",
+    summary="Busca todos os menores caminhos (BFS) entre dois usuários"
+)
+async def buscar_caminhos_bfs(
+    username_origem: str = Query(..., description="Username de origem"),
+    username_alvo: str = Query(..., description="Username de destino"),
+    max_search_depth: int = Query(5, description="Profundidade máxima da busca")
+):
+    try:
+        manager = get_supabase_manager()
+        
+        # Busca IDs com retry
+        start_id = None
+        target_id = None
+        max_retries = 3
+        retry_delay = 1
+
+        for attempt in range(max_retries):
+            try:
+                # Aguardar as operações do Supabase
+                start_id = await asyncio.to_thread(manager.get_id_from_username, username_origem)
+                target_id = await asyncio.to_thread(manager.get_id_from_username, username_alvo)
+                if start_id and target_id:
+                    break
+                await asyncio.sleep(retry_delay)
+                retry_delay *= 2
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Erro ao buscar IDs dos usuários após {max_retries} tentativas: {str(e)}"
+                    )
+
+        if not start_id or not target_id:
+            return {
+                "origem": username_origem,
+                "alvo": username_alvo,
+                "caminhos": [],
+                "quantidade": 0,
+                "erro": "Usuário(s) não encontrado(s)."
+            }
+
+        # Busca caminhos com retry
+        paths = None
+        retry_delay = 1
+        for attempt in range(max_retries):
+            try:
+                # Aguardar a operação do Supabase
+                paths = await asyncio.to_thread(manager.find_all_shortest_paths_bfs, start_id, target_id, max_search_depth)
+                if paths is not None:
+                    break
+                await asyncio.sleep(retry_delay)
+                retry_delay *= 2
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Erro ao buscar caminhos após {max_retries} tentativas: {str(e)}"
+                    )
+
+        caminhos = []
+        if paths:
+            for path in paths:
+                usernames = []
+                for uid in path:
+                    # Aguardar a operação do Supabase
+                    username = await asyncio.to_thread(manager.get_username_from_id, uid)
+                    if username:
+                        usernames.append(username)
+                if len(usernames) == len(path):
+                    caminhos.append(usernames)
+
+        return {
+            "origem": username_origem,
+            "alvo": username_alvo,
+            "caminhos": caminhos,
+            "quantidade": len(caminhos)
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro interno ao processar a busca de caminhos: {str(e)}"
+        )
+
+@router.get(
+    "/caminhos/dfs",
+    summary="Busca todos os caminhos (DFS) entre dois usuários até a profundidade máxima"
+)
+async def buscar_caminhos_dfs(
+    username_origem: str = Query(..., description="Username de origem"),
+    username_alvo: str = Query(..., description="Username de destino"),
+    max_search_depth: int = Query(5, description="Profundidade máxima da busca")
+):
+    try:
+        manager = get_supabase_manager()
+        
+        # Busca IDs com retry
+        start_id = None
+        target_id = None
+        max_retries = 3
+        retry_delay = 1
+
+        for attempt in range(max_retries):
+            try:
+                # Aguardar as operações do Supabase
+                start_id = await asyncio.to_thread(manager.get_id_from_username, username_origem)
+                target_id = await asyncio.to_thread(manager.get_id_from_username, username_alvo)
+                if start_id and target_id:
+                    break
+                await asyncio.sleep(retry_delay)
+                retry_delay *= 2
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Erro ao buscar IDs dos usuários após {max_retries} tentativas: {str(e)}"
+                    )
+
+        if not start_id or not target_id:
+            return {"erro": "Usuário(s) não encontrado(s)."}
+
+        # Busca caminhos com retry
+        all_paths = []
+        retry_delay = 1
+        for attempt in range(max_retries):
+            try:
+                # Aguardar a operação do Supabase
+                await asyncio.to_thread(
+                    manager.find_all_paths_dfs_recursive,
+                    start_id,
+                    target_id,
+                    [start_id],
+                    set(),
+                    all_paths,
+                    max_search_depth
+                )
+                if all_paths is not None:
+                    break
+                await asyncio.sleep(retry_delay)
+                retry_delay *= 2
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Erro ao buscar caminhos após {max_retries} tentativas: {str(e)}"
+                    )
+
+        caminhos = []
+        if all_paths:
+            for path in all_paths:
+                usernames = []
+                for uid in path:
+                    # Aguardar a operação do Supabase
+                    username = await asyncio.to_thread(manager.get_username_from_id, uid)
+                    if username:
+                        usernames.append(username)
+                if len(usernames) == len(path):
+                    caminhos.append(usernames)
+
+        return {
+            "origem": username_origem,
+            "alvo": username_alvo,
+            "caminhos": caminhos,
+            "quantidade": len(caminhos)
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro interno ao processar a busca de caminhos: {str(e)}"
+        )
 
 # Adicionar endpoints para busca por nome/cnpj/cpf aqui futuramente 

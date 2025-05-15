@@ -10,3 +10,7 @@ passlib==1.7.4
 python-multipart==0.0.6
 hikerapi
 pytest-asyncio 
+redis
+supabase
+asyncpg
+dotenv

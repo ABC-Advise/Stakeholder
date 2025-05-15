@@ -199,11 +199,25 @@ export default function InstagramSearchPage() {
 
     // Handler para o botão "Buscar" individual na tabela
     const handleSearchIndividual = async (entidade: Entidade) => {
-        if (!entidade.id || !entidade.tipo) {
-            console.error("Tentativa de buscar entidade sem ID ou Tipo (handleSearchIndividual):", entidade);
+        if (!entidade.tipo) {
             toast({
                 title: "Erro de Dados",
-                description: "Não é possível buscar detalhes para esta entidade pois faltam informações (ID ou Tipo).",
+                description: "Não é possível buscar detalhes para esta entidade pois faltam informações (Tipo).",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        let tipoEntidade = (entidade.tipo || '').trim();
+        let identifier = '';
+        if (tipoEntidade === 'empresa') identifier = (entidade.cnpj || '').trim();
+        else if (tipoEntidade === 'pessoa') identifier = (entidade.cpf || '').trim();
+        else if (tipoEntidade === 'advogado') identifier = (entidade.cpf || entidade.oab || '').trim();
+
+        if (!identifier) {
+            toast({
+                title: "Erro de Dados",
+                description: "Não foi possível encontrar o identificador correto (CNPJ, CPF ou OAB) para esta entidade.",
                 variant: "destructive",
             });
             return;
@@ -211,14 +225,11 @@ export default function InstagramSearchPage() {
 
         toast({ title: "Iniciando Busca", description: `Iniciando busca para ${entidade.nome}...` });
         try {
-            await instagramService.findInstagramForEntity(entidade.tipo, entidade.id);
-            toast({
-                title: "Busca Iniciada",
-                description: `A busca para ${entidade.nome} foi iniciada. Redirecionando...`,
-            });
-            router.push(`/instagram-search/${entidade.tipo}/${entidade.id}`);
+            // Se quiser chamar a API para iniciar a busca, descomente a linha abaixo:
+            // await instagramService.findInstagramForEntity(tipoEntidade, identifier);
+            // Redireciona para a busca individual usando o identifier correto
+            router.push(`/instagram-search/${tipoEntidade}/${identifier}`);
         } catch (error) {
-            console.error(`Erro ao iniciar busca para ${entidade.nome}:`, error);
             toast({
                 title: "Erro na Busca",
                 description: `Não foi possível iniciar a busca para ${entidade.nome}.`,
@@ -229,54 +240,20 @@ export default function InstagramSearchPage() {
 
     // Handler para busca por identificador
     const handleIdentifierSearch = async () => {
-        if (!identifierSearchType || !identifierSearchValue.trim()) {
+        const tipo = (identifierSearchType || '').toString().trim().toLowerCase();
+        const identifier = (identifierSearchValue || '').toString().trim();
+
+        if (!tipo || !identifier) {
             setMensagemErro('Por favor, selecione o tipo e informe o identificador.');
             return;
         }
-        setLoadingIdentifierSearch(true);
-        try {
-            const data = await instagramService.getEntityProfile(identifierSearchType, { identifier: identifierSearchValue.trim() });
 
-            console.log("--- Debug handleIdentifierSearch ---");
-            console.log("API Response (raw data):", data);
-            console.log("Checking data:", !!data);
-            console.log("Checking data.entity:", !!(data && data.entity));
-            console.log("Checking data.entity.id:", !!(data && data.entity && data.entity.id));
-            console.log("Value of data.entity.id:", data?.entity?.id);
-            console.log("Type of data.entity.id:", typeof data?.entity?.id);
-            console.log("Value of identifierSearchType:", identifierSearchType);
-
-            if (data && data.entity && data.entity.id && identifierSearchType) {
-                console.log("Condition PASSED. Preparing navigation...");
-                toast({
-                    title: "Entidade Encontrada",
-                    description: `Redirecionando para os resultados de ${data.entity.nome}.`,
-                });
-
-                const entityIdStr = String(data.entity.id);
-                const url = `/instagram-search/${identifierSearchType}/${entityIdStr}`;
-                console.log("Navigating to URL:", url);
-
-                try {
-                    router.push(url);
-                    console.log("Navigation successful (router.push called).");
-                } catch (navError) {
-                    console.error("Navigation error during router.push:", navError);
-                    toast({ title: "Erro de Navegação", description: "Não foi possível ir para a página de resultados.", variant: "destructive" });
-                }
-            } else {
-                console.log("Condition FAILED. Entidade não encontrada na resposta da API ou dados inválidos (sem entidade, id ou tipo válido).");
-                toast({
-                    title: "Entidade Não Encontrada",
-                    description: "Nenhuma entidade encontrada com o identificador fornecido ou resposta inválida.",
-                    variant: "default"
-                });
-            }
-        } catch (error: any) {
-            setMensagemErro(error?.response?.data?.detail || error?.response?.data?.message || error?.message || 'Ocorreu um erro ao buscar a entidade por identificador.');
-        } finally {
-            setLoadingIdentifierSearch(false);
+        if (!['empresa', 'pessoa', 'advogado'].includes(tipo)) {
+            setMensagemErro('Tipo de entidade inválido.');
+            return;
         }
+
+        router.push(`/instagram-search/${tipo}/${identifier}`);
     };
 
     // Handlers para buscas em massa específicas
@@ -295,7 +272,7 @@ export default function InstagramSearchPage() {
             }));
             toast({ title: `Busca para ${tipo}s concluída`, description: `${tipoResult.length} entidades processadas.` });
         } catch (error: any) {
-            console.error(`Erro na busca em massa para ${tipo}:`, error);
+            console.error(`Erro na busca em massa para ${tipo}: `, error);
             const erroArray = [{ error: `Falha ao buscar ${tipo}s: ${error.message || 'Erro desconhecido'}`, entity: {} as Entidade, candidates: [], validated_profile: null }];
             setBulkResults(prev => ({
                 empresas: tipo === 'empresa' ? erroArray : (prev && prev.empresas ? prev.empresas : []),
@@ -409,7 +386,7 @@ export default function InstagramSearchPage() {
                             {dashboardData.ultimas_buscas.map((b) => (
                                 <div key={b.nome + b.data} className="flex flex-col md:flex-row md:items-center md:gap-4 p-2 border rounded bg-white">
                                     <span className="font-medium">{b.nome} <span className="text-xs text-gray-500">({b.tipo})</span></span>
-                                    <span className={`text-xs font-semibold ${b.status === 'concluida' ? 'text-green-600' : b.status === 'em_andamento' ? 'text-blue-600' : 'text-red-600'}`}>Status: {b.status}</span>
+                                    <span className={`text - xs font - semibold ${b.status === 'concluida' ? 'text-green-600' : b.status === 'em_andamento' ? 'text-blue-600' : 'text-red-600'}`}>Status: {b.status}</span>
                                     <span className="text-xs text-gray-500">{new Date(b.data).toLocaleString()}</span>
                                 </div>
                             ))}
@@ -569,7 +546,7 @@ export default function InstagramSearchPage() {
                                             {resultados
                                                 .filter((res: any) => res.validated_profile || (res.possible_profiles && res.possible_profiles.length > 0))
                                                 .map((res: any, index: number) => (
-                                                    <li key={`${tipo}-res-${index}`} className="border-b pb-2 mb-2">
+                                                    <li key={`${tipo} - res - ${index}`} className="border-b pb-2 mb-2">
                                                         <div className="font-medium">
                                                             {res.entity?.nome || res.entity?.firstname + ' ' + res.entity?.lastname || res.entity?.razao_social || '(Sem nome)'}
                                                         </div>
@@ -579,7 +556,8 @@ export default function InstagramSearchPage() {
                                                         {res.validated_profile && (
                                                             <div className="mt-1 flex items-center gap-2 text-green-700 text-xs">
                                                                 <img
-                                                                    src={`${API_URL}/proxy/instagram-image?url=${encodeURIComponent(res.validated_profile.perfil.profile_pic_url)}`}
+                                                                    src={`${API_URL} / proxy / instagram - image ? url = ${encodeURIComponent(res.validated_profile.perfil.profile_pic_url)
+                                                                        } `}
                                                                     alt={res.validated_profile.perfil.username}
                                                                     className="w-8 h-8 rounded-full border"
                                                                     onError={e => { (e.currentTarget as HTMLImageElement).src = '/img/placeholder_profile.png'; }}
@@ -641,27 +619,28 @@ export default function InstagramSearchPage() {
                                                                     {res.candidates.map((cand: any) => (
                                                                         <li key={cand.pk} className="flex items-center gap-2">
                                                                             <img
-                                                                                src={`${API_URL}/api/v1/proxy/instagram-image?url=${encodeURIComponent(cand.profile_pic_url)}`}
+                                                                                src={`${API_URL} /api/v1 / proxy / instagram - image ? url = ${encodeURIComponent(cand.profile_pic_url)} `}
                                                                                 alt={cand.username}
                                                                                 className="w-6 h-6 rounded-full border"
                                                                                 onError={e => { (e.currentTarget as HTMLImageElement).src = '/img/placeholder_profile.png'; }}
                                                                             />
                                                                             <a href={`https://instagram.com/${cand.username}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">@{cand.username}</a>
                                                                             <span className="text-xs text-gray-500">{cand.full_name}</span>
-                                                                        </li>
-                                                                    ))}
-                                                                </ul>
-                                                            </div>
+                                                                        </li >
+                                                                    ))
+                                                                    }
+                                                                </ul >
+                                                            </div >
                                                         )}
-                                                    </li>
+                                                    </li >
                                                 ))}
-                                        </ul>
+                                        </ul >
                                     )}
-                                </div>
+                                </div >
                             );
                         })}
-                    </CardContent>
-                </Card>
+                    </CardContent >
+                </Card >
             )}
 
             {/* Busca Avançada de Entidades */}
@@ -839,6 +818,6 @@ export default function InstagramSearchPage() {
                     )}
                 </TabsContent>
             </Tabs>
-        </div>
+        </div >
     );
 } 

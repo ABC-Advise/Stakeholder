@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Search, Building, Users, Briefcase } from "lucide-react";
+import { Loader2, Search, Building, Users, Briefcase, ArrowRight } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { instagramService } from "../services/api";
 import { useSearchParams } from 'next/navigation';
@@ -24,6 +24,10 @@ export default function BuscaRelacionadosPage() {
     const [manualResults, setManualResults] = useState<any[]>([]);
     const [perfilPrincipal, setPerfilPrincipal] = useState<any>(null);
     const [mensagemErro, setMensagemErro] = useState<string | null>(null);
+    const [loadingCaminhos, setLoadingCaminhos] = useState(false);
+    const [caminhosEncontrados, setCaminhosEncontrados] = useState<any>(null);
+    const [algoritmoBusca, setAlgoritmoBusca] = useState<'bfs' | 'dfs'>('bfs');
+    const [profundidadeMaxima, setProfundidadeMaxima] = useState(5);
 
     useEffect(() => {
         // Preencher campos se vierem na URL
@@ -122,6 +126,35 @@ export default function BuscaRelacionadosPage() {
         }
     };
 
+    // Nova função para buscar caminhos
+    const handleBuscarCaminhos = async () => {
+        if (!instagramPrincipal) {
+            setMensagemErro('Instagram da entidade principal não encontrado.');
+            return;
+        }
+
+        setLoadingCaminhos(true);
+        setCaminhosEncontrados(null);
+
+        try {
+            const resultado = algoritmoBusca === 'bfs'
+                ? await instagramService.buscarCaminhosBFS(instagramPrincipal, manualInstagram, profundidadeMaxima)
+                : await instagramService.buscarCaminhosDFS(instagramPrincipal, manualInstagram, profundidadeMaxima);
+
+            setCaminhosEncontrados(resultado);
+            toast({
+                title: 'Caminhos encontrados',
+                description: `Foram encontrados ${resultado.quantidade} caminhos.`
+            });
+        } catch (error: any) {
+            console.error('Erro ao buscar caminhos:', error);
+            const msg = error?.response?.data?.detail || error?.message || 'Erro ao buscar caminhos.';
+            setMensagemErro(msg);
+        } finally {
+            setLoadingCaminhos(false);
+        }
+    };
+
     return (
         <div className="container mx-auto py-6">
             {mensagemErro && (
@@ -162,7 +195,7 @@ export default function BuscaRelacionadosPage() {
                     </button>
                 </div>
             )}
-            <h1 className="text-3xl font-bold mb-6">Busca de Relacionados</h1>
+            <h1 className="text-3xl font-bold mb-6">Encontrar caminho até <span className="text-blue-700">@waltaganlopes</span></h1>
             {/* Passo 1: Buscar Relacionados */}
             <Card className="mb-6">
                 <CardHeader>
@@ -361,6 +394,91 @@ export default function BuscaRelacionadosPage() {
                                     </li>
                                 ))}
                             </ul>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+            {/* Card de busca de caminhos entre usuários */}
+            <Card className="mb-6">
+                <CardHeader>
+                    <CardTitle>Buscar Caminhos entre Usuários</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-col sm:flex-row gap-2 items-end">
+                        <Input
+                            placeholder="Username de origem"
+                            value={instagramPrincipal}
+                            onChange={e => setInstagramPrincipal(e.target.value)}
+                        />
+                        <Input
+                            placeholder="Username de destino"
+                            value="waltaganlopes"
+                            readOnly
+                            className="bg-gray-100 cursor-not-allowed"
+                        />
+                        <Select value={algoritmoBusca} onValueChange={v => setAlgoritmoBusca(v as 'bfs' | 'dfs')}>
+                            <SelectTrigger className="w-[120px]">
+                                <SelectValue placeholder="Algoritmo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="bfs">BFS</SelectItem>
+                                <SelectItem value="dfs">DFS</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Input
+                            type="number"
+                            min={1}
+                            max={10}
+                            value={profundidadeMaxima}
+                            onChange={e => setProfundidadeMaxima(Number(e.target.value))}
+                            className="w-24"
+                            placeholder="Profundidade"
+                        />
+                        <Button onClick={handleBuscarCaminhos} disabled={loadingCaminhos}>
+                            {loadingCaminhos ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                            Buscar Caminhos
+                        </Button>
+                    </div>
+                    {/* Exibe resultados dos caminhos */}
+                    {caminhosEncontrados && (
+                        <div className="mt-6">
+                            <p className="text-base font-semibold text-gray-700 mb-4">
+                                {caminhosEncontrados.quantidade === 0
+                                    ? "Nenhum caminho encontrado."
+                                    : `Foram encontrados ${caminhosEncontrados.quantidade} caminho(s) entre `}
+                                <span className="text-blue-700">@{caminhosEncontrados.origem}</span>
+                                {" "}e{" "}
+                                <span className="text-blue-700">@{caminhosEncontrados.alvo}</span>
+                            </p>
+                            <div className="space-y-4">
+                                {caminhosEncontrados.caminhos.map((caminho: string[], idx: number) => (
+                                    <div
+                                        key={idx}
+                                        className="flex items-center gap-2 p-3 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow transition"
+                                    >
+                                        {caminho.map((username, i) => (
+                                            <div key={i} className="flex items-center">
+                                                <a
+                                                    href={`https://instagram.com/${username}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className={`font-medium px-2 py-1 rounded hover:underline ${i === 0
+                                                        ? "bg-blue-100 text-blue-800"
+                                                        : i === caminho.length - 1
+                                                            ? "bg-green-100 text-green-800"
+                                                            : "bg-gray-100 text-gray-700"
+                                                        }`}
+                                                >
+                                                    @{username}
+                                                </a>
+                                                {i < caminho.length - 1 && (
+                                                    <ArrowRight className="h-5 w-5 mx-2 text-gray-400" />
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </CardContent>
