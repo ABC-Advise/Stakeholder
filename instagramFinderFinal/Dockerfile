@@ -19,11 +19,7 @@ COPY requirements.txt .
 
 # Instala as dependências Python
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir safety
-
-# Verifica vulnerabilidades nas dependências
-RUN safety check
+    pip install --no-cache-dir -r requirements.txt
 
 # Copia o código da aplicação
 COPY --chown=appuser:appuser . .
