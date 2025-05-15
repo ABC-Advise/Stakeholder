@@ -1,0 +1,30 @@
+# Tarefas do Projeto Instagram Finder
+
+## Prioridade Alta
+- [ ] Implementar autenticação e autorização
+- [ ] Adicionar rate limiting para a API
+- [ ] Implementar cache para reduzir chamadas à Hiker API
+- [ ] Criar testes unitários para os serviços
+- [ ] Criar testes de integração para os repositórios
+- [ ] Implementar logging adequado
+
+## Prioridade Média
+- [ ] Adicionar validação de dados de entrada
+- [ ] Implementar sistema de filas para processamento assíncrono
+- [ ] Criar documentação Swagger/OpenAPI
+- [ ] Adicionar monitoramento de performance
+- [ ] Implementar sistema de backup do banco de dados
+
+## Prioridade Baixa
+- [ ] Adicionar suporte a múltiplos idiomas
+- [ ] Implementar sistema de notificações
+- [ ] Criar dashboard administrativo
+- [ ] Adicionar suporte a exportação de dados
+- [ ] Implementar sistema de relatórios
+
+## Melhorias Futuras
+- [ ] Adicionar suporte a outras redes sociais
+- [ ] Implementar análise de sentimento dos comentários
+- [ ] Criar sistema de recomendação de perfis
+- [ ] Adicionar suporte a webhooks
+- [ ] Implementar sistema de métricas avançadas 

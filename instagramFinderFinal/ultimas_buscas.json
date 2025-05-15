@@ -1,0 +1,68 @@
+[
+  {
+    "nome": "35556254000175",
+    "tipo": "empresa",
+    "status": "concluida",
+    "data": "2025-05-14T16:25:19"
+  },
+  {
+    "nome": "553",
+    "tipo": "undefined",
+    "status": "erro",
+    "data": "2025-05-14T17:16:58"
+  },
+  {
+    "nome": "65",
+    "tipo": "undefined",
+    "status": "erro",
+    "data": "2025-05-14T17:28:31"
+  },
+  {
+    "nome": "67189571000197",
+    "tipo": "empresa",
+    "status": "erro",
+    "data": "2025-05-14T17:37:30"
+  },
+  {
+    "nome": "CONSTROWINS ENGENHARIA 4",
+    "tipo": "empresa",
+    "status": "concluida",
+    "data": "2025-05-14T17:39:25"
+  },
+  {
+    "nome": "IT S INFORMOV",
+    "tipo": "empresa",
+    "status": "concluida",
+    "data": "2025-05-14T17:42:40"
+  },
+  {
+    "nome": "Seguidores de pedro.m.mg (Willson)",
+    "tipo": "seguidores",
+    "status": "concluida",
+    "data": "2025-05-14T17:43:37"
+  },
+  {
+    "nome": "Seguidores de victordavi_oc (Pedro)",
+    "tipo": "seguidores",
+    "status": "concluida",
+    "data": "2025-05-14T17:58:50"
+  },
+  {
+    "nome": "85974",
+    "tipo": "advogado",
+    "status": "concluida",
+    "data": "2025-05-14T18:01:10"
+  },
+  {
+    "nome": "Valter Alves de Souza",
+    "tipo": "advogado",
+    "status": "concluida",
+    "data": "2025-05-14T18:01:14"
+  },
+  {
+    "nome": "Seguidores de valteralvesdesouza (FABIO HENRIQUE SOUZA ALMEIDA, JORGE CECILIO DAHER JUNIOR, Maria Corina Martinelli, FABRICIA FIGUEIREDO DE MEDEIROS MAIA, MARCELO PIMENTA, ARNALDO DE SOUSA TEIXEIRA JUNIOR, ABDENAGO TELLES DA SILVA, KATIA ARANTES ROMANO HANNA, JOSE VINICIUS TRONCONI, RODRIGO MIRANDA, CARLOS EDUARDO REBELLO, PAULO EDUARDO MARINHO DE JESUS, CONCEICAO DE MARIA DE CASTRO SILVA, Ellis França)",
+    "tipo": "seguidores",
+    "status": "concluida",
+    "data": "2025-05-14T18:02:18"
+  }
+]
