@@ -15,7 +15,7 @@ load_dotenv()
 # Configuração do CORS
 BACKEND_CORS_ORIGINS = os.getenv(
     "BACKEND_CORS_ORIGINS",
-    "http://localhost:3000,http://localhost:8000,https://frontend-stakeholder-production.up.railway.app, https://stakeholder-production-593b.up.railway.app, https://stakeholder-production-e363.up.railway.app/api/v1"
+    "http://localhost:3000,http://localhost:8000,https://frontend-stakeholder-production.up.railway.app,https://stakeholder-production-593b.up.railway.app,https://stakeholder-production-e363.up.railway.app"
 ).split(",")
 
 app = FastAPI(
