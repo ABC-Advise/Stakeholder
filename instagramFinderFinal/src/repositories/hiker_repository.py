@@ -2,7 +2,6 @@ import os
 from hikerapi import AsyncClient
 from dotenv import load_dotenv
 from typing import Dict, Any
-import aiohttp
 
 load_dotenv()
 

@@ -7,6 +7,12 @@ WORKDIR /app
 # Instala as dependências do sistema e atualiza os pacotes
 RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    g++ \
+    python3-dev \
+    libffi-dev \
+    libssl-dev \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
