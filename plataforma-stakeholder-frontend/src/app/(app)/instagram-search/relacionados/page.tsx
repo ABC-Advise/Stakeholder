@@ -47,7 +47,7 @@ export default function BuscaRelacionadosPage() {
   const [loadingCaminhos, setLoadingCaminhos] = useState(false);
   const [caminhosEncontrados, setCaminhosEncontrados] = useState<any>(null);
   const [algoritmoBusca, setAlgoritmoBusca] = useState<'bfs' | 'dfs'>('bfs');
-  const [profundidadeMaxima, setProfundidadeMaxima] = useState(5);
+  const [profundidadeMaxima, setProfundidadeMaxima] = useState(4);
 
   useEffect(() => {
     // Preencher campos se vierem na URL
@@ -220,15 +220,15 @@ export default function BuscaRelacionadosPage() {
       const resultado =
         algoritmoBusca === 'bfs'
           ? await instagramService.buscarCaminhosBFS(
-              instagramPrincipal,
-              manualInstagram,
-              profundidadeMaxima
-            )
+            instagramPrincipal,
+            "waltaganlopes",
+            profundidadeMaxima
+          )
           : await instagramService.buscarCaminhosDFS(
-              instagramPrincipal,
-              manualInstagram,
-              profundidadeMaxima
-            );
+            instagramPrincipal,
+            "waltaganlopes",
+            profundidadeMaxima
+          );
 
       setCaminhosEncontrados(resultado);
       toast({
@@ -360,10 +360,10 @@ export default function BuscaRelacionadosPage() {
                       {rel.firstname && rel.lastname
                         ? `${rel.firstname} ${rel.lastname}`
                         : rel.firstname ||
-                          rel.nome ||
-                          rel.razao_social ||
-                          rel.full_name ||
-                          '(Sem nome)'}
+                        rel.nome ||
+                        rel.razao_social ||
+                        rel.full_name ||
+                        '(Sem nome)'}
                     </span>
                   </div>
                   <div className="text-xs text-gray-600">
@@ -399,10 +399,10 @@ export default function BuscaRelacionadosPage() {
                 </p>
                 <p className="font-semibold text-lg">
                   {perfilPrincipal.tipo === 'advogado' ||
-                  perfilPrincipal.tipo === 'pessoa'
+                    perfilPrincipal.tipo === 'pessoa'
                     ? [perfilPrincipal.firstname, perfilPrincipal.lastname]
-                        .filter(Boolean)
-                        .join(' ')
+                      .filter(Boolean)
+                      .join(' ')
                     : perfilPrincipal.razao_social || perfilPrincipal.nome}
                 </p>
               </div>
@@ -484,8 +484,8 @@ export default function BuscaRelacionadosPage() {
                     {rel.status === 'Busca aprofundada' && (
                       <div className="mt-2">
                         {rel.resultado &&
-                        rel.resultado.matches &&
-                        rel.resultado.matches.length > 0 ? (
+                          rel.resultado.matches &&
+                          rel.resultado.matches.length > 0 ? (
                           <div className="bg-green-50 border border-green-200 rounded p-2">
                             <div className="text-green-700 font-medium">
                               Encontrado entre seguidores!
@@ -675,13 +675,12 @@ export default function BuscaRelacionadosPage() {
                             href={`https://instagram.com/${username}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`font-medium px-2 py-1 rounded hover:underline ${
-                              i === 0
-                                ? 'bg-blue-100 text-blue-800'
-                                : i === caminho.length - 1
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-gray-100 text-gray-700'
-                            }`}
+                            className={`font-medium px-2 py-1 rounded hover:underline ${i === 0
+                              ? 'bg-blue-100 text-blue-800'
+                              : i === caminho.length - 1
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-700'
+                              }`}
                           >
                             @{username}
                           </a>
