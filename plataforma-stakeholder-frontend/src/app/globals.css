@@ -8,7 +8,9 @@ circle {
 
 .matched {
   filter: drop-shadow(0 0 10px rgb(137, 172, 43)); /* Exemplo de brilho */
-  transition: transform 0.3s, filter 0.3s; /* Suaviza as transições */
+  transition:
+    transform 0.3s,
+    filter 0.3s; /* Suaviza as transições */
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -17,16 +19,16 @@ circle {
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
 }
- 
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #e4e4e7; 
+  background: #e4e4e7;
   border-radius: 12px;
 }
 
