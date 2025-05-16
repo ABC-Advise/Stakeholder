@@ -4,10 +4,23 @@ from dotenv import load_dotenv
 import os
 import platform
 import psutil
+import logging
+import sys
 
 # Importar routers da API
 from src.api.v1.endpoints import profiles as profiles_v1
 from src.routes.profile_finder_routes import router as profile_finder_router
+
+
+# Configuração básica de logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    stream=sys.stdout,
+)
+logger = logging.getLogger(__name__)
+
+
 
 # Carrega as variáveis de ambiente
 load_dotenv()
