@@ -43,7 +43,17 @@ limiter = Limiter(
 ipban = IpBan(app)
 
 # Habilita o Cross-Origin Resource Sharing (CORS) para permitir comunicação entre domínios diferentes
-cors = CORS(app, supports_credentials=True)
+cors = CORS(
+    app,
+    resources={r"/*": {"origins": [
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "https://frontend-stakeholder-production.up.railway.app"
+    ]}},
+    supports_credentials=True,
+    allow_headers=["Content-Type", "Authorization"],
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+)
 
 # Configuração do gerenciador de erros personalizados da aplicação
 error_handler = ErrorHandler(app, db)
