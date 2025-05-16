@@ -1,31 +1,31 @@
-'use client'
+'use client';
 
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef } from '@tanstack/react-table';
+import { MoreHorizontal } from 'lucide-react';
 
-import { MoreHorizontal } from 'lucide-react'
-
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Checkbox } from '@/components/ui/checkbox'
-import { EditLawyerDialog } from './edit-lawyer-dialog'
-import { LawyerDetailsDialog } from './lawyer-details-dialog'
-import { DeleteLawyerDialog } from './delete-lawyer-dialog'
+} from '@/components/ui/dropdown-menu';
+
+import { DeleteLawyerDialog } from './delete-lawyer-dialog';
+import { EditLawyerDialog } from './edit-lawyer-dialog';
+import { LawyerDetailsDialog } from './lawyer-details-dialog';
 
 export type Lawyer = {
-  advogado_id: number
-  firstname: string
-  lastname: string
-  oab: string
-  cpf: string
-  linkedin: string
-  instagram: string
-}
+  advogado_id: number;
+  firstname: string;
+  lastname: string;
+  oab: string;
+  cpf: string;
+  linkedin: string;
+  instagram: string;
+};
 
 export const columns: ColumnDef<Lawyer>[] = [
   {
@@ -62,7 +62,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     id: 'actions',
     enableHiding: false,
     cell: ({ row }) => {
-      const lawyer = row.original
+      const lawyer = row.original;
 
       return (
         <DropdownMenu>
@@ -88,7 +88,7 @@ export const columns: ColumnDef<Lawyer>[] = [
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
   },
-]
+];

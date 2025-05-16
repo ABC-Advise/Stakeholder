@@ -1,15 +1,14 @@
-'use client'
+'use client';
 
-import { getLawyers } from '@/http/lawyers/get-lawyers'
-import { useQuery } from '@tanstack/react-query'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { z } from 'zod'
-import { DataTable } from './data-table'
-import { columns } from './columns'
-import { Pagination } from '@/components/pagination'
-import { DataTableSkeleton } from './data-table-skeleton'
-import { ChangeEvent, FormEvent, useState } from 'react'
+import { DropdownMenuCheckboxItemProps } from '@radix-ui/react-dropdown-menu';
+import { useQuery } from '@tanstack/react-query';
+import { ChevronDown, FilterX, ListFilter, Search } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { ChangeEvent, FormEvent, useState } from 'react';
+import { z } from 'zod';
 
+import { Pagination } from '@/components/pagination';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -17,126 +16,128 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { DropdownMenuCheckboxItemProps } from '@radix-ui/react-dropdown-menu'
-import { Input } from '@/components/ui/input'
-import { ChevronDown, FilterX, ListFilter, Search } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { getLawyers } from '@/http/lawyers/get-lawyers';
 
-type Checked = DropdownMenuCheckboxItemProps['checked']
+import { columns } from './columns';
+import { DataTable } from './data-table';
+import { DataTableSkeleton } from './data-table-skeleton';
+
+type Checked = DropdownMenuCheckboxItemProps['checked'];
 
 const searchSchema = z.object({
   query: z.string().min(1),
-})
+});
 
-type SearchScchema = z.infer<typeof searchSchema>
+type SearchScchema = z.infer<typeof searchSchema>;
 
 export default function LawyersPage() {
-  const [searchType, setSearchType] = useState('oab')
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchType, setSearchType] = useState('oab');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const [isOpenCreateStakeholder, setIsOpenCreateStakeholder] = useState(false)
+  const [isOpenCreateStakeholder, setIsOpenCreateStakeholder] = useState(false);
 
-  const [showClients, setShowClients] = useState<Checked>(true)
-  const [showProspect, setShowProspect] = useState<Checked>(false)
+  const [showClients, setShowClients] = useState<Checked>(true);
+  const [showProspect, setShowProspect] = useState<Checked>(false);
 
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
 
-  const oab = searchParams.get('oab') ?? null
-  const cpf = searchParams.get('cpf') ?? null
-  const nome = searchParams.get('nome') ?? null
-  const sobrenome = searchParams.get('sobrenome') ?? null
-  const stakeholder = searchParams.get('stakeholder') ?? null
+  const oab = searchParams.get('oab') ?? null;
+  const cpf = searchParams.get('cpf') ?? null;
+  const nome = searchParams.get('nome') ?? null;
+  const sobrenome = searchParams.get('sobrenome') ?? null;
+  const stakeholder = searchParams.get('stakeholder') ?? null;
 
-  const pathname = usePathname()
-  const router = useRouter()
+  const pathname = usePathname();
+  const router = useRouter();
 
   const page = z.coerce
     .number()
-    .transform((page) => page)
-    .parse(searchParams.get('page') ?? '1')
+    .transform(page => page)
+    .parse(searchParams.get('page') ?? '1');
 
   const size = z.coerce
     .number()
-    .transform((size) => size)
-    .parse(searchParams.get('size') ?? '10')
+    .transform(size => size)
+    .parse(searchParams.get('size') ?? '10');
 
   const { data, isLoading } = useQuery({
     queryKey: ['lawyers', page, size, oab, cpf, nome, sobrenome, stakeholder],
     queryFn: () =>
       getLawyers({ page, size, oab, cpf, nome, sobrenome, stakeholder }),
-  })
+  });
 
   function handlePaginate(page: number) {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    params.set('page', (page + 1).toString())
+    params.set('page', (page + 1).toString());
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   function handleSelectChange(e: ChangeEvent<HTMLSelectElement>) {
-    setSearchType(e.target.value)
+    setSearchType(e.target.value);
   }
 
   function handleFilter(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    e.preventDefault();
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    const data = new FormData(e.currentTarget)
-    const query = data.get('query')?.toString()
+    const data = new FormData(e.currentTarget);
+    const query = data.get('query')?.toString();
 
     if (query) {
       if (searchType === 'oab') {
-        params.set('oab', query)
+        params.set('oab', query);
       }
 
       if (searchType === 'cpf') {
-        params.set('cpf', query)
+        params.set('cpf', query);
       }
 
       if (searchType === 'nome') {
-        params.set('nome', query)
+        params.set('nome', query);
       }
 
       if (searchType === 'sobrenome') {
-        params.set('sobrenome', query)
+        params.set('sobrenome', query);
       }
 
-      router.replace(`${pathname}?${params.toString()}`)
+      router.replace(`${pathname}?${params.toString()}`);
     }
 
-    e.currentTarget.reset()
+    e.currentTarget.reset();
   }
 
   function handleSearchLawyerByStakeholder(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    e.preventDefault();
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    const data = new FormData(e.currentTarget)
-    const documento = data.get('documento')?.toString()
+    const data = new FormData(e.currentTarget);
+    const documento = data.get('documento')?.toString();
 
     if (documento) {
-      params.set('stakeholder', documento)
+      params.set('stakeholder', documento);
     }
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
 
-    e.currentTarget.reset()
+    e.currentTarget.reset();
   }
 
   function handleClearFilters() {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    params.delete('oab')
-    params.delete('cpf')
-    params.delete('nome')
-    params.delete('sobrenome')
-    params.delete('stakeholder')
-    params.delete('page')
-    params.delete('size')
+    params.delete('oab');
+    params.delete('cpf');
+    params.delete('nome');
+    params.delete('sobrenome');
+    params.delete('stakeholder');
+    params.delete('page');
+    params.delete('size');
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   return (
@@ -239,5 +240,5 @@ export default function LawyersPage() {
         {isLoading && <DataTableSkeleton />}
       </div>
     </main>
-  )
+  );
 }

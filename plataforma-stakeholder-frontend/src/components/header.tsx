@@ -1,17 +1,9 @@
-'use client'
+'use client';
 
 // import { AccountMenu } from './account-menu'
 
-import Link from 'next/link'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu'
-import { Button } from './ui/button'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
   BadgeHelp,
@@ -24,7 +16,15 @@ import {
   Settings2,
   UserRoundPlus,
   Users,
-} from 'lucide-react'
+} from 'lucide-react';
+import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+import { NavLink } from './nav-link';
+import { Button } from './ui/button';
 import {
   DialogHeader,
   DialogFooter,
@@ -33,31 +33,32 @@ import {
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from './ui/dialog'
-import { Input } from './ui/input'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
-import { Label } from './ui/label'
-import { useQueryClient } from '@tanstack/react-query'
-import { NavLink } from './nav-link'
+} from './ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 
 const searchStakeholder = z.object({
   documento: z.string(),
-})
+});
 
-type SearchStakeholder = z.infer<typeof searchStakeholder>
+type SearchStakeholder = z.infer<typeof searchStakeholder>;
 
 export function Header() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
-  const searchParams = useSearchParams()
-  const pathname = usePathname()
-  const router = useRouter()
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const {
     register,
@@ -65,16 +66,16 @@ export function Header() {
     formState: { isSubmitting },
   } = useForm<SearchStakeholder>({
     resolver: zodResolver(searchStakeholder),
-  })
+  });
 
   async function handleSearchStakeholder(data: SearchStakeholder) {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    params.set('documento', data.documento)
+    params.set('documento', data.documento);
 
-    setIsModalOpen(false)
+    setIsModalOpen(false);
 
-    router.replace(`/?${params.toString()}`)
+    router.replace(`/?${params.toString()}`);
   }
 
   return (
@@ -163,11 +164,13 @@ export function Header() {
           <NavLink href="/projetos">Projetos</NavLink>
           <NavLink href="/logs">Consultas</NavLink>
           <NavLink href="/instagram-search">Busca Instagram</NavLink>
-          <NavLink href="/instagram-search/relacionados">Relacionados Instagram</NavLink>
+          <NavLink href="/instagram-search/relacionados">
+            Relacionados Instagram
+          </NavLink>
         </div>
       </div>
 
       {/* <AccountMenu /> */}
     </header>
-  )
+  );
 }

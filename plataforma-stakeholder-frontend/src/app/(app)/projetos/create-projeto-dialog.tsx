@@ -1,6 +1,13 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -8,42 +15,35 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useForm } from 'react-hook-form'
-
-import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useToast } from '@/hooks/use-toast'
-import { Loader2 } from 'lucide-react'
-import { createProjeto } from '@/http/projetos/create-projeto'
-import { Textarea } from '@/components/ui/textarea'
-import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { createProjeto } from '@/http/projetos/create-projeto';
 
 const createFormSchema = z.object({
   nome: z.string(),
   descricao: z.string(),
-})
+});
 
-type CreateFormSchema = z.infer<typeof createFormSchema>
+type CreateFormSchema = z.infer<typeof createFormSchema>;
 
 interface CreateProjetoDialogProps {
-  isOpen: boolean
-  setIsOpen: (isOpen: boolean) => void
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
 }
 
 export function CreateProjetoDialog({
   isOpen,
   setIsOpen,
 }: CreateProjetoDialogProps) {
-  const { toast } = useToast()
+  const { toast } = useToast();
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const {
     control,
@@ -53,14 +53,14 @@ export function CreateProjetoDialog({
     formState: { errors, isSubmitting },
   } = useForm<CreateFormSchema>({
     resolver: zodResolver(createFormSchema),
-  })
+  });
 
   const { mutateAsync: createProjetoFn } = useMutation({
     mutationFn: createProjeto,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projetos'] })
+      queryClient.invalidateQueries({ queryKey: ['projetos'] });
     },
-  })
+  });
 
   async function handleCreatePessoa(data: CreateFormSchema) {
     try {
@@ -69,24 +69,24 @@ export function CreateProjetoDialog({
         descricao: data.descricao,
         data_inicio: startDate,
         data_fim: endDate,
-      })
+      });
 
-      setIsOpen(false)
+      setIsOpen(false);
 
-      reset()
+      reset();
 
       toast({
         title: 'Sucesso!',
         description: 'Projeto cadastrado com sucesso!',
-      })
+      });
     } catch (err) {
-      console.log(err)
+      console.log(err);
 
       toast({
         variant: 'destructive',
         title: 'Ops...',
         description: 'Ocorreu um erro ao tentar cadastrar.',
-      })
+      });
     }
   }
 
@@ -126,7 +126,7 @@ export function CreateProjetoDialog({
                 type="date"
                 id="startDate"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={e => setStartDate(e.target.value)}
                 className="rounded border p-2"
               />
             </div>
@@ -137,7 +137,7 @@ export function CreateProjetoDialog({
                 type="date"
                 id="endDate"
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={e => setEndDate(e.target.value)}
                 className="rounded-md border p-2"
               />
             </div>
@@ -160,5 +160,5 @@ export function CreateProjetoDialog({
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 import {
   ContextMenu,
   ContextMenuCheckboxItem,
@@ -12,8 +14,7 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
   ContextMenuTrigger,
-} from '@/components/ui/context-menu'
-import { ReactNode } from 'react'
+} from '@/components/ui/context-menu';
 
 export function ContextMenuProvider({ children }: { children: ReactNode }) {
   return (
@@ -62,5 +63,5 @@ export function ContextMenuProvider({ children }: { children: ReactNode }) {
         </ContextMenuRadioGroup>
       </ContextMenuContent>
     </ContextMenu>
-  )
+  );
 }

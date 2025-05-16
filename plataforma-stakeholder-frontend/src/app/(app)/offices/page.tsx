@@ -1,15 +1,14 @@
-'use client'
+'use client';
 
-import { Pagination } from '@/components/pagination'
-import { DataTable } from './data-table'
-import { useQuery } from '@tanstack/react-query'
-import { getOffices } from '@/http/offices/get-offices'
-import { columns } from './columns'
-import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import { z } from 'zod'
-import { DataTableSkeleton } from './data-table-skeleton'
-import { Input } from '@/components/ui/input'
+import { DropdownMenuCheckboxItemProps } from '@radix-ui/react-dropdown-menu';
+import { useQuery } from '@tanstack/react-query';
+import { FilterX, ListFilter, Search } from 'lucide-react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useState } from 'react';
+import { z } from 'zod';
 
+import { Pagination } from '@/components/pagination';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -17,45 +16,47 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
-import { FilterX, ListFilter, Search } from 'lucide-react'
-import { DropdownMenuCheckboxItemProps } from '@radix-ui/react-dropdown-menu'
-import { useState } from 'react'
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { getOffices } from '@/http/offices/get-offices';
 
-type Checked = DropdownMenuCheckboxItemProps['checked']
+import { columns } from './columns';
+import { DataTable } from './data-table';
+import { DataTableSkeleton } from './data-table-skeleton';
+
+type Checked = DropdownMenuCheckboxItemProps['checked'];
 
 export default function OfficesPage() {
-  const searchParams = useSearchParams()
-  const pathname = usePathname()
-  const router = useRouter()
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
 
-  const [isOpenCreateStakeholder, setIsOpenCreateStakeholder] = useState(false)
+  const [isOpenCreateStakeholder, setIsOpenCreateStakeholder] = useState(false);
 
-  const [showClients, setShowClients] = useState<Checked>(true)
-  const [showProspect, setShowProspect] = useState<Checked>(false)
+  const [showClients, setShowClients] = useState<Checked>(true);
+  const [showProspect, setShowProspect] = useState<Checked>(false);
 
   const page = z.coerce
     .number()
-    .transform((page) => page)
-    .parse(searchParams.get('page') ?? '1')
+    .transform(page => page)
+    .parse(searchParams.get('page') ?? '1');
 
   const size = z.coerce
     .number()
-    .transform((size) => size)
-    .parse(searchParams.get('size') ?? '10')
+    .transform(size => size)
+    .parse(searchParams.get('size') ?? '10');
 
   const { data, isLoading } = useQuery({
     queryKey: ['offices', page, size],
     queryFn: () => getOffices({ page, size }),
-  })
+  });
 
   function handlePaginate(page: number) {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    params.set('page', (page + 1).toString())
+    params.set('page', (page + 1).toString());
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   return (
@@ -102,5 +103,5 @@ export default function OfficesPage() {
         {isLoading && <DataTableSkeleton />}
       </div>
     </main>
-  )
+  );
 }

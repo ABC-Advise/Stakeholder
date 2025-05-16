@@ -1,26 +1,26 @@
-import { api } from '../api-client'
+import { api } from '../api-client';
 
 interface CreatePessoaRequest {
-  firstname: string
-  lastname: string
-  cpf: string
-  linkedin?: string
-  instagram?: string
-  stakeholder: boolean
-  em_prospecao: boolean
-  projeto_id?: number
+  firstname: string;
+  lastname: string;
+  cpf: string;
+  linkedin?: string;
+  instagram?: string;
+  stakeholder: boolean;
+  em_prospecao: boolean;
+  projeto_id?: number;
 }
 
 interface CreatePessoaResponse {
-  pessoa_id: number
-  firstname: string
-  lastname: string
-  cpf: string
-  stakeholder: boolean
-  em_prospecao: boolean
-  linkedin: string
-  instagram: string
-  projeto_id: number
+  pessoa_id: number;
+  firstname: string;
+  lastname: string;
+  cpf: string;
+  stakeholder: boolean;
+  em_prospecao: boolean;
+  linkedin: string;
+  instagram: string;
+  projeto_id: number;
 }
 
 export async function createPessoa({
@@ -42,7 +42,7 @@ export async function createPessoa({
     stakeholder,
     em_prospecao,
     projeto_id,
-  })
+  });
 
-  return response.data
+  return response.data;
 }

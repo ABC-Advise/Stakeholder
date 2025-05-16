@@ -1,6 +1,19 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ChevronDown, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { z, ZodType } from 'zod';
+
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Dialog,
   DialogClose,
@@ -10,28 +23,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useToast } from '@/hooks/use-toast'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronDown, Loader2 } from 'lucide-react'
-import { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import { z, ZodType } from 'zod'
-import { getPessoas } from '@/http/pessoa/get-pessoas'
-import { updatePessoa } from '@/http/pessoa/update-pessoa'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
-import { Checkbox } from '@/components/ui/checkbox'
-import { formatCpfCnpj } from '@/utils/format-cpf-cnpj'
-import { Pessoa } from './columns'
-import { removeNonNumeric } from '@/utils/remove-format'
-import { PessoaSkeletonDialog } from './pessoa-skeleton-dialog'
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -40,8 +34,16 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { getProjetos } from '@/http/projetos/get-projetos'
+} from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { getPessoas } from '@/http/pessoa/get-pessoas';
+import { updatePessoa } from '@/http/pessoa/update-pessoa';
+import { getProjetos } from '@/http/projetos/get-projetos';
+import { formatCpfCnpj } from '@/utils/format-cpf-cnpj';
+import { removeNonNumeric } from '@/utils/remove-format';
+
+import { Pessoa } from './columns';
+import { PessoaSkeletonDialog } from './pessoa-skeleton-dialog';
 
 const updateFormSchema = z.object({
   firstname: z
@@ -56,32 +58,32 @@ const updateFormSchema = z.object({
   instagram: z.string().optional(),
   linkedin: z.string().optional(),
   projeto: z.string().nonempty('Selecione um projeto válido.'),
-})
+});
 
-type UpdateFormSchema = z.infer<typeof updateFormSchema>
+type UpdateFormSchema = z.infer<typeof updateFormSchema>;
 
 interface EditPessoaDialogProps {
-  pessoa: Pessoa
+  pessoa: Pessoa;
 }
 
 export function EditPessoaDialog({ pessoa }: EditPessoaDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
     queryKey: ['pessoas', pessoa.pessoa_id],
     queryFn: () => getPessoas({ pessoa_id: pessoa.pessoa_id }),
     enabled: isOpen,
-  })
+  });
 
   const { data: projetos, isLoading: isLoadingProjetos } = useQuery({
     queryKey: ['projetos'],
     queryFn: () => getProjetos({}),
     enabled: isOpen,
-  })
+  });
 
   const {
     control,
@@ -100,14 +102,14 @@ export function EditPessoaDialog({ pessoa }: EditPessoaDialogProps) {
       instagram: pessoa.instagram ?? '',
       linkedin: pessoa.linkedin ?? '',
     },
-  })
+  });
 
   const { mutateAsync: updatePessoaFn } = useMutation({
     mutationFn: updatePessoa,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pessoas'] })
+      queryClient.invalidateQueries({ queryKey: ['pessoas'] });
     },
-  })
+  });
 
   async function handleUpdatePessoa(data: UpdateFormSchema) {
     try {
@@ -121,24 +123,24 @@ export function EditPessoaDialog({ pessoa }: EditPessoaDialogProps) {
         instagram: data.instagram,
         linkedin: data.linkedin,
         projeto_id: Number(data.projeto),
-      })
+      });
 
-      reset()
+      reset();
 
-      setIsOpen(false)
+      setIsOpen(false);
 
       toast({
         title: 'Sucesso!',
         description: 'As informações sobre o escritório foram atualizadas.',
-      })
+      });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       toast({
         variant: 'destructive',
         title: 'Erro ao atualizar...',
         description:
           'Não foi possível atualizar as informações sobre o escritório.',
-      })
+      });
     }
   }
 
@@ -152,7 +154,7 @@ export function EditPessoaDialog({ pessoa }: EditPessoaDialogProps) {
 
       <DialogContent>
         {data &&
-          data.pessoas.map((pessoa) => {
+          data.pessoas.map(pessoa => {
             return (
               <form
                 onSubmit={handleSubmit(handleUpdatePessoa)}
@@ -193,9 +195,9 @@ export function EditPessoaDialog({ pessoa }: EditPessoaDialogProps) {
                       minLength={11}
                       maxLength={15}
                       {...register('cpf')}
-                      onChange={(e) => {
-                        const formattedValue = formatCpfCnpj(e.target.value)
-                        e.target.value = formattedValue
+                      onChange={e => {
+                        const formattedValue = formatCpfCnpj(e.target.value);
+                        e.target.value = formattedValue;
                       }}
                     />
                     {errors.cpf && (
@@ -223,7 +225,7 @@ export function EditPessoaDialog({ pessoa }: EditPessoaDialogProps) {
                           <SelectContent>
                             <SelectGroup>
                               <SelectLabel>Projetos</SelectLabel>
-                              {projetos?.projetos.map((projeto) => (
+                              {projetos?.projetos.map(projeto => (
                                 <SelectItem
                                   key={projeto.projeto_id}
                                   value={projeto.projeto_id.toString()}
@@ -266,7 +268,7 @@ export function EditPessoaDialog({ pessoa }: EditPessoaDialogProps) {
                             </span>
                           </div>
                         </div>
-                      )
+                      );
                     }}
                   />
 
@@ -293,7 +295,7 @@ export function EditPessoaDialog({ pessoa }: EditPessoaDialogProps) {
                             </span>
                           </div>
                         </div>
-                      )
+                      );
                     }}
                   />
 
@@ -353,11 +355,11 @@ export function EditPessoaDialog({ pessoa }: EditPessoaDialogProps) {
                   </Button>
                 </DialogFooter>
               </form>
-            )
+            );
           })}
 
         {isLoading && <PessoaSkeletonDialog />}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

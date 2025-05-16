@@ -1,6 +1,19 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
+import { ChevronDown } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { z, ZodType } from 'zod';
+
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Dialog,
   DialogClose,
@@ -10,25 +23,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
-import { Empresa } from './columns'
-import { EmpresaSkeletonDialog } from './empresa-skeleton-dialog'
-import { getEmpresas } from '@/http/empresa/get-empresas'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
-import { ChevronDown } from 'lucide-react'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Controller, useForm } from 'react-hook-form'
-import { formatCpfCnpj } from '@/utils/format-cpf-cnpj'
-import { z, ZodType } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -37,11 +34,16 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { getProjetos } from '@/http/projetos/get-projetos'
+} from '@/components/ui/select';
+import { getEmpresas } from '@/http/empresa/get-empresas';
+import { getProjetos } from '@/http/projetos/get-projetos';
+import { formatCpfCnpj } from '@/utils/format-cpf-cnpj';
+
+import { Empresa } from './columns';
+import { EmpresaSkeletonDialog } from './empresa-skeleton-dialog';
 
 interface EmpresaDetailsDialogProps {
-  empresa: Empresa
+  empresa: Empresa;
 }
 
 const updateFormSchema = z.object({
@@ -57,24 +59,24 @@ const updateFormSchema = z.object({
   instagram: z.string().optional(),
   linkedin: z.string().optional(),
   projeto: z.string().nonempty('Selecione um projeto válido.'),
-})
+});
 
-type UpdateFormSchema = z.infer<typeof updateFormSchema>
+type UpdateFormSchema = z.infer<typeof updateFormSchema>;
 
 export function EmpresaDetailsDialog({ empresa }: EmpresaDetailsDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['empresas', empresa.empresa_id],
     queryFn: () => getEmpresas({ empresa_id: empresa.empresa_id }),
     enabled: isOpen,
-  })
+  });
 
   const { data: projetos, isLoading: isLoadingProjetos } = useQuery({
     queryKey: ['projetos'],
     queryFn: () => getProjetos({}),
     enabled: isOpen,
-  })
+  });
 
   const { control, register } = useForm<UpdateFormSchema>({
     resolver: zodResolver(updateFormSchema as unknown as ZodType<any>),
@@ -88,7 +90,7 @@ export function EmpresaDetailsDialog({ empresa }: EmpresaDetailsDialogProps) {
       linkedin: empresa.linkedin,
       projeto: empresa.projeto_id.toString() ?? '',
     },
-  })
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -100,7 +102,7 @@ export function EmpresaDetailsDialog({ empresa }: EmpresaDetailsDialogProps) {
 
       <DialogContent>
         {data &&
-          data.empresas.map((empresa) => {
+          data.empresas.map(empresa => {
             return (
               <form key={empresa.empresa_id}>
                 <DialogHeader>
@@ -125,9 +127,9 @@ export function EmpresaDetailsDialog({ empresa }: EmpresaDetailsDialogProps) {
                       maxLength={15}
                       disabled
                       {...register('cnpj')}
-                      onChange={(e) => {
-                        const formattedValue = formatCpfCnpj(e.target.value)
-                        e.target.value = formattedValue
+                      onChange={e => {
+                        const formattedValue = formatCpfCnpj(e.target.value);
+                        e.target.value = formattedValue;
                       }}
                     />
                   </div>
@@ -151,7 +153,7 @@ export function EmpresaDetailsDialog({ empresa }: EmpresaDetailsDialogProps) {
                           <SelectContent>
                             <SelectGroup>
                               <SelectLabel>Projetos</SelectLabel>
-                              {projetos?.projetos.map((projeto) => (
+                              {projetos?.projetos.map(projeto => (
                                 <SelectItem
                                   key={projeto.projeto_id}
                                   value={projeto.projeto_id.toString()}
@@ -190,7 +192,7 @@ export function EmpresaDetailsDialog({ empresa }: EmpresaDetailsDialogProps) {
                             </span>
                           </div>
                         </div>
-                      )
+                      );
                     }}
                   />
 
@@ -218,7 +220,7 @@ export function EmpresaDetailsDialog({ empresa }: EmpresaDetailsDialogProps) {
                             </span>
                           </div>
                         </div>
-                      )
+                      );
                     }}
                   />
 
@@ -252,11 +254,11 @@ export function EmpresaDetailsDialog({ empresa }: EmpresaDetailsDialogProps) {
                   </DialogClose>
                 </DialogFooter>
               </form>
-            )
+            );
           })}
 
         {isLoading && <EmpresaSkeletonDialog />}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

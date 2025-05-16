@@ -1,19 +1,19 @@
-import { api } from '../api-client'
+import { api } from '../api-client';
 
 interface UpdateLawyerRequest {
-  advogado_id: number
-  firstname?: string
-  lastname?: string
-  oab?: string
+  advogado_id: number;
+  firstname?: string;
+  lastname?: string;
+  oab?: string;
 }
 
 interface UpdateLawyerResponse {
-  advogado_id: number
-  firstname: string
-  lastname: string
-  oab: string
-  linkedin: string
-  instagram: string
+  advogado_id: number;
+  firstname: string;
+  lastname: string;
+  oab: string;
+  linkedin: string;
+  instagram: string;
 }
 
 export async function updateLawyer({
@@ -27,7 +27,7 @@ export async function updateLawyer({
     firstname,
     lastname,
     oab,
-  })
+  });
 
-  return response.data
+  return response.data;
 }

@@ -1,6 +1,10 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
+import { useQuery } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -10,28 +14,26 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { getOffices } from '@/http/offices/get-offices'
-import { useQuery } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
-import { Office } from './columns'
-import { OfficeSkeletonDialog } from './office-skeleton-dialog'
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { getOffices } from '@/http/offices/get-offices';
+
+import { Office } from './columns';
+import { OfficeSkeletonDialog } from './office-skeleton-dialog';
 
 interface EditOfficeDialogProps {
-  office: Office
+  office: Office;
 }
 
 export function OfficeDetailsDialog({ office }: EditOfficeDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['offices', office.escritorio_id],
     queryFn: () => getOffices({ escritorio_id: office.escritorio_id }),
     enabled: isOpen,
-  })
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -43,7 +45,7 @@ export function OfficeDetailsDialog({ office }: EditOfficeDialogProps) {
 
       <DialogContent>
         {data &&
-          data.escritorios.map((office) => {
+          data.escritorios.map(office => {
             return (
               <form key={office.escritorio_id}>
                 <DialogHeader>
@@ -70,11 +72,11 @@ export function OfficeDetailsDialog({ office }: EditOfficeDialogProps) {
                   </DialogClose>
                 </DialogFooter>
               </form>
-            )
+            );
           })}
 
         {isLoading && <OfficeSkeletonDialog />}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

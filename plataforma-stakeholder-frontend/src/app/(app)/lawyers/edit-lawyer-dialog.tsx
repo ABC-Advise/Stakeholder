@@ -1,6 +1,13 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z, ZodType } from 'zod';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -10,20 +17,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useToast } from '@/hooks/use-toast'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { z, ZodType } from 'zod'
-import { Lawyer } from './columns'
-import { getLawyers } from '@/http/lawyers/get-lawyers'
-import { updateLawyer } from '@/http/lawyers/update-lawyer'
-import { LawyerSkeletonDialog } from './lawyer-skeleton-dialog'
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { getLawyers } from '@/http/lawyers/get-lawyers';
+import { updateLawyer } from '@/http/lawyers/update-lawyer';
+
+import { Lawyer } from './columns';
+import { LawyerSkeletonDialog } from './lawyer-skeleton-dialog';
 
 const updateFormSchema = z.object({
   firstname: z
@@ -33,26 +35,26 @@ const updateFormSchema = z.object({
     .string()
     .min(1, { message: 'Último nome é um campo obrigatório.' }),
   oab: z.string().min(1, { message: 'OAB é um campo obrigatório.' }),
-})
+});
 
-type UpdateFormSchema = z.infer<typeof updateFormSchema>
+type UpdateFormSchema = z.infer<typeof updateFormSchema>;
 
 interface EditLawyerDialogProps {
-  lawyer: Lawyer
+  lawyer: Lawyer;
 }
 
 export function EditLawyerDialog({ lawyer }: EditLawyerDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
     queryKey: ['lawyers', lawyer.advogado_id],
     queryFn: () => getLawyers({ advogado_id: lawyer.advogado_id }),
     enabled: isOpen,
-  })
+  });
 
   const {
     register,
@@ -61,14 +63,14 @@ export function EditLawyerDialog({ lawyer }: EditLawyerDialogProps) {
     formState: { isSubmitting, errors },
   } = useForm<UpdateFormSchema>({
     resolver: zodResolver(updateFormSchema as unknown as ZodType<any>),
-  })
+  });
 
   const { mutateAsync: updateLawyerFn } = useMutation({
     mutationFn: updateLawyer,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['lawyers'] })
+      queryClient.invalidateQueries({ queryKey: ['lawyers'] });
     },
-  })
+  });
 
   async function handleUpdateOffice(data: UpdateFormSchema) {
     try {
@@ -77,24 +79,24 @@ export function EditLawyerDialog({ lawyer }: EditLawyerDialogProps) {
         firstname: data.firstname,
         lastname: data.lastname,
         oab: data.oab,
-      })
+      });
 
-      reset()
+      reset();
 
-      setIsOpen(false)
+      setIsOpen(false);
 
       toast({
         title: 'Sucesso!',
         description: 'As informações sobre o escritório foram atualizadas.',
-      })
+      });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       toast({
         variant: 'destructive',
         title: 'Erro ao atualizar...',
         description:
           'Não foi possível atualizar as informações sobre o escritório.',
-      })
+      });
     }
   }
 
@@ -108,7 +110,7 @@ export function EditLawyerDialog({ lawyer }: EditLawyerDialogProps) {
 
       <DialogContent>
         {data &&
-          data.advogados.map((lawyer) => {
+          data.advogados.map(lawyer => {
             return (
               <form
                 onSubmit={handleSubmit(handleUpdateOffice)}
@@ -183,11 +185,11 @@ export function EditLawyerDialog({ lawyer }: EditLawyerDialogProps) {
                   </Button>
                 </DialogFooter>
               </form>
-            )
+            );
           })}
 
         {isLoading && <LawyerSkeletonDialog />}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

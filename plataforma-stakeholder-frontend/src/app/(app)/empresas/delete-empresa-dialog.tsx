@@ -1,6 +1,10 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -9,51 +13,49 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { useToast } from '@/hooks/use-toast'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
-import { Empresa } from './columns'
-import { deleteEmpresa } from '@/http/empresa/delete-empresa'
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { deleteEmpresa } from '@/http/empresa/delete-empresa';
+
+import { Empresa } from './columns';
 
 interface DeleteEmpresaDialogProps {
-  empresa: Empresa
+  empresa: Empresa;
 }
 
 export function DeleteEmpresaDialog({ empresa }: DeleteEmpresaDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const { mutateAsync: deleteEmpresaFn, isPending } = useMutation({
     mutationFn: deleteEmpresa,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['empresas'] })
+      queryClient.invalidateQueries({ queryKey: ['empresas'] });
     },
-  })
+  });
 
   async function handleDeleteEmpresa(id: number) {
     try {
       await deleteEmpresaFn({
         empresa_id: empresa.empresa_id,
-      })
+      });
 
-      setIsOpen(false)
+      setIsOpen(false);
 
       toast({
         title: 'Empresa removido!',
         description: 'Você removeu o empresa com sucesso.',
-      })
+      });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       toast({
         variant: 'destructive',
         title: 'Erro ao tentar remover...',
         description: 'Não foi possível remover o empresa desejado.',
-      })
+      });
     }
   }
 
@@ -107,5 +109,5 @@ export function DeleteEmpresaDialog({ empresa }: DeleteEmpresaDialogProps) {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,9 +1,22 @@
-'use client'
+'use client';
 
-import dynamic from 'next/dynamic'
+import { useQuery } from '@tanstack/react-query';
+import { debounce } from 'lodash';
+import {
+  ChevronsLeft,
+  ChevronsRight,
+  FilterX,
+  Loader2,
+  LoaderCircle,
+  Spline,
+} from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { z } from 'zod';
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -13,31 +26,18 @@ import {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { getCitiesByUf } from '@/http/get-cities-by-uf'
-import { getNetwork } from '@/http/get-network'
-import { getUfs } from '@/http/get-ufs'
-import { getProjetos } from '@/http/projetos/get-projetos'
-import { useQuery } from '@tanstack/react-query'
-import {
-  ChevronsLeft,
-  ChevronsRight,
-  FilterX,
-  Loader2,
-  LoaderCircle,
-  Spline,
-} from 'lucide-react'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { z } from 'zod'
-import { getSegmento, GetSegmentoResponse } from '@/http/segmento/get-segmento'
-import { debounce } from 'lodash'
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { getCitiesByUf } from '@/http/get-cities-by-uf';
+import { getNetwork } from '@/http/get-network';
+import { getUfs } from '@/http/get-ufs';
+import { getProjetos } from '@/http/projetos/get-projetos';
+import { getSegmento, GetSegmentoResponse } from '@/http/segmento/get-segmento';
 
 // carregar componente no client side
 const NetworkGraph = dynamic(
-  () => import('@/components/network-graph').then((mod) => mod.NetworkGraph),
+  () => import('@/components/network-graph').then(mod => mod.NetworkGraph),
   {
     ssr: false,
     loading: () => (
@@ -45,8 +45,8 @@ const NetworkGraph = dynamic(
         <Loader2 className="size-8 animate-spin" />
       </div>
     ),
-  },
-)
+  }
+);
 
 const filterSchema = z.object({
   nome: z.string().optional(),
@@ -57,69 +57,69 @@ const filterSchema = z.object({
   camada: z.string().optional(),
   em_prospeccao: z.boolean().default(false),
   associado: z.boolean().default(false),
-})
+});
 
-type FilterSchemaForm = z.infer<typeof filterSchema>
+type FilterSchemaForm = z.infer<typeof filterSchema>;
 
 export default function Home() {
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
 
-  const pathname = usePathname()
-  const router = useRouter()
+  const pathname = usePathname();
+  const router = useRouter();
 
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const [currentLayer, setCurrentLayer] = useState('0')
-  const [openFilter, setOpenFilter] = useState(true)
+  const [currentLayer, setCurrentLayer] = useState('0');
+  const [openFilter, setOpenFilter] = useState(true);
 
-  const [selectedValues, setSelectedValues] = useState<string[]>([])
+  const [selectedValues, setSelectedValues] = useState<string[]>([]);
 
-  const [selectedUF, setSelectedUF] = useState<string | undefined>(undefined)
+  const [selectedUF, setSelectedUF] = useState<string | undefined>(undefined);
 
   const [selectedCity, setSelectedCity] = useState<string | undefined>(
-    undefined,
-  )
+    undefined
+  );
 
   const [selectedProjeto, setSelectedProjeto] = useState<string | undefined>(
-    undefined,
-  )
+    undefined
+  );
 
   const [selectedSegmento, setSelectedSegmento] = useState<string | undefined>(
-    undefined,
-  )
+    undefined
+  );
 
-  const [search, setSearch] = useState('')
-  const [pageSegmento, setPageSegmento] = useState(1)
+  const [search, setSearch] = useState('');
+  const [pageSegmento, setPageSegmento] = useState(1);
 
   const [loadedSegments, setLoadedSegments] = useState<
     GetSegmentoResponse['segmento_empresas']
-  >([])
+  >([]);
 
-  const nome = searchParams.get('nome') ?? null
-  const razao_social = searchParams.get('razao_social') ?? null
+  const nome = searchParams.get('nome') ?? null;
+  const razao_social = searchParams.get('razao_social') ?? null;
 
-  const documento = searchParams.get('documento') ?? null
-  const layer = searchParams.get('layer') ?? null
+  const documento = searchParams.get('documento') ?? null;
+  const layer = searchParams.get('layer') ?? null;
 
-  const associado = searchParams.get('associado') ?? null
-  const em_prospeccao = searchParams.get('em_prospeccao') ?? null
+  const associado = searchParams.get('associado') ?? null;
+  const em_prospeccao = searchParams.get('em_prospeccao') ?? null;
 
-  const cidade = searchParams.get('cidade') ?? null
-  const uf = searchParams.get('uf') ?? null
-  const projeto_id = searchParams.get('projeto_id') ?? null
-  const segmento_id = searchParams.get('segmento_id') ?? null
+  const cidade = searchParams.get('cidade') ?? null;
+  const uf = searchParams.get('uf') ?? null;
+  const projeto_id = searchParams.get('projeto_id') ?? null;
+  const segmento_id = searchParams.get('segmento_id') ?? null;
 
   const { data: segmento, isLoading: isLoadingSegmento } = useQuery({
     queryKey: ['segmento_empresa', pageSegmento, search],
     queryFn: () =>
       getSegmento({ page: pageSegmento, size: 10, descricao: search }),
-  })
+  });
 
   // Busca UFs
   const { data: ufs, isLoading: isLoadingUFs } = useQuery({
     queryKey: ['ufs'],
     queryFn: getUfs,
-  })
+  });
 
   // Busca cidades com base na UF selecionada
   const {
@@ -130,12 +130,12 @@ export default function Home() {
     queryKey: ['cities', selectedUF],
     queryFn: () => getCitiesByUf(selectedUF!),
     enabled: !!selectedUF, // Só executa quando uma UF for selecionada
-  })
+  });
 
   const { data: projetos, isLoading: isLoadingProjetos } = useQuery({
     queryKey: ['projetos'],
     queryFn: () => getProjetos({}),
-  })
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: [
@@ -164,212 +164,212 @@ export default function Home() {
         projeto_id,
         segmento_id,
       }),
-  })
+  });
 
   function handleFilterNome(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    e.preventDefault();
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    const data = new FormData(e.currentTarget)
-    const nome = data.get('nome')?.toString()
+    const data = new FormData(e.currentTarget);
+    const nome = data.get('nome')?.toString();
 
     if (nome) {
-      params.set('nome', nome)
+      params.set('nome', nome);
     }
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
 
-    e.currentTarget.reset()
+    e.currentTarget.reset();
   }
 
   function handleFilterRazaoSocial(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    e.preventDefault();
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    const data = new FormData(e.currentTarget)
-    const razao_social = data.get('razao_social')?.toString()
+    const data = new FormData(e.currentTarget);
+    const razao_social = data.get('razao_social')?.toString();
 
     if (razao_social) {
-      params.set('razao_social', razao_social)
+      params.set('razao_social', razao_social);
     }
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
 
-    e.currentTarget.reset()
+    e.currentTarget.reset();
   }
 
   function handleFilterLayer(layer: string) {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    setCurrentLayer(layer)
+    setCurrentLayer(layer);
 
     if (layer === '0') {
-      params.delete('layer')
+      params.delete('layer');
     } else {
-      params.set('layer', layer)
+      params.set('layer', layer);
     }
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   useEffect(() => {
-    const initialValues: string[] = []
+    const initialValues: string[] = [];
     if (associado) {
-      initialValues.push('1') // Valor do toggle associado
+      initialValues.push('1'); // Valor do toggle associado
     }
     if (em_prospeccao) {
-      initialValues.push('2') // Valor do toggle em prospecção
+      initialValues.push('2'); // Valor do toggle em prospecção
     }
-    setSelectedValues(initialValues)
-  }, [associado, em_prospeccao])
+    setSelectedValues(initialValues);
+  }, [associado, em_prospeccao]);
 
   useEffect(() => {
-    if (layer) setCurrentLayer(layer)
+    if (layer) setCurrentLayer(layer);
 
-    if (uf) setSelectedUF(uf)
-    if (cidade) setSelectedCity(cidade)
-    if (projeto_id) setSelectedProjeto(projeto_id)
-  }, [layer, uf, cidade, projeto_id])
+    if (uf) setSelectedUF(uf);
+    if (cidade) setSelectedCity(cidade);
+    if (projeto_id) setSelectedProjeto(projeto_id);
+  }, [layer, uf, cidade, projeto_id]);
 
   const updateUrlParams = (key: string, value: boolean) => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams.toString());
 
     if (value) {
       // Adicionar o parâmetro
-      params.set(key, 'true')
+      params.set(key, 'true');
     } else {
       // Remover o parâmetro
-      params.delete(key)
+      params.delete(key);
     }
 
     // Atualizar a URL sem recarregar
-    router.push(`?${params.toString()}`)
-  }
+    router.push(`?${params.toString()}`);
+  };
 
   const handleToggleChange = (value: string) => {
-    setSelectedValues((prev) => {
-      const isCurrentlySelected = prev.includes(value)
+    setSelectedValues(prev => {
+      const isCurrentlySelected = prev.includes(value);
 
       // Atualizar os parâmetros da URL
-      if (value === '1') updateUrlParams('associado', !isCurrentlySelected)
-      if (value === '2') updateUrlParams('em_prospeccao', !isCurrentlySelected)
+      if (value === '1') updateUrlParams('associado', !isCurrentlySelected);
+      if (value === '2') updateUrlParams('em_prospeccao', !isCurrentlySelected);
 
       return isCurrentlySelected
-        ? prev.filter((v) => v !== value) // Remover se estava marcado
-        : [...prev, value] // Adicionar se estava desmarcado
-    })
-  }
+        ? prev.filter(v => v !== value) // Remover se estava marcado
+        : [...prev, value]; // Adicionar se estava desmarcado
+    });
+  };
 
   const updateSelectUrlParams = (key: string, value: string | null) => {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
     if (value) {
-      params.set(key, value)
+      params.set(key, value);
     } else {
-      params.delete(key)
+      params.delete(key);
     }
 
-    router.replace(`?${params.toString()}`)
-  }
+    router.replace(`?${params.toString()}`);
+  };
 
   const handleUFChange = (uf: string) => {
-    setSelectedUF(uf)
-    updateSelectUrlParams('uf', uf)
-  }
+    setSelectedUF(uf);
+    updateSelectUrlParams('uf', uf);
+  };
 
   const handleCityChange = (city: string) => {
-    setSelectedCity(city)
-    updateSelectUrlParams('cidade', city)
-  }
+    setSelectedCity(city);
+    updateSelectUrlParams('cidade', city);
+  };
 
   const handleProjetoChange = (projeto: string) => {
-    setSelectedProjeto(projeto)
-    updateSelectUrlParams('projeto_id', projeto)
-  }
+    setSelectedProjeto(projeto);
+    updateSelectUrlParams('projeto_id', projeto);
+  };
 
   function handleClearFilters() {
-    setSelectedUF(undefined)
-    setSelectedCity(undefined)
-    setSelectedProjeto(undefined)
+    setSelectedUF(undefined);
+    setSelectedCity(undefined);
+    setSelectedProjeto(undefined);
 
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    params.delete('nome')
-    params.delete('razao_social')
+    params.delete('nome');
+    params.delete('razao_social');
 
-    params.delete('documento')
-    params.delete('associado')
-    params.delete('em_prospeccao')
+    params.delete('documento');
+    params.delete('associado');
+    params.delete('em_prospeccao');
 
-    params.delete('projeto_id')
-    params.delete('segmento_id')
-    params.delete('uf')
-    params.delete('cidade')
+    params.delete('projeto_id');
+    params.delete('segmento_id');
+    params.delete('uf');
+    params.delete('cidade');
 
-    params.delete('layer')
+    params.delete('layer');
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   const filteredUFs = ufs?.filter((uf: any) =>
-    uf.sigla.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+    uf.sigla.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const filteredCities = cities?.filter((city: string) =>
-    city.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+    city.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   function handleFilterSegmento(id: string) {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
-    setSelectedSegmento(id)
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    setSelectedSegmento(id);
 
-    params.set('segmento_id', id)
+    params.set('segmento_id', id);
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   useEffect(() => {
     if (segmento && segmento.segmento_empresas) {
       if (pageSegmento === 1) {
-        setLoadedSegments(segmento.segmento_empresas)
+        setLoadedSegments(segmento.segmento_empresas);
       } else {
-        setLoadedSegments((prev) => [...prev, ...segmento.segmento_empresas])
+        setLoadedSegments(prev => [...prev, ...segmento.segmento_empresas]);
       }
     }
-  }, [segmento, pageSegmento])
+  }, [segmento, pageSegmento]);
 
   // Função debounced para evitar muitas requisições enquanto o usuário digita
   const debouncedSearch = useMemo(
     () =>
       debounce((value: string) => {
         // Reinicia para a página 1 e atualiza a busca
-        setPageSegmento(1)
-        setSearch(value)
+        setPageSegmento(1);
+        setSearch(value);
       }, 300),
-    [],
-  )
+    []
+  );
 
   // Manipula as mudanças no input de busca
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const valor = e.target.value
+    const valor = e.target.value;
     if (valor === '') {
       // Se o campo estiver vazio, reinicia a página e a busca imediatamente,
       // fazendo com que a lista exiba os segmentos da primeira página padrão
-      setPageSegmento(1)
-      setSearch('')
+      setPageSegmento(1);
+      setSearch('');
     } else {
-      debouncedSearch(valor)
+      debouncedSearch(valor);
     }
-  }
+  };
 
-  const isDisable = segmento ? pageSegmento === segmento?.meta.pages : false
+  const isDisable = segmento ? pageSegmento === segmento?.meta.pages : false;
 
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="size-8 animate-spin" />
       </div>
-    )
+    );
   }
 
   return (
@@ -434,7 +434,7 @@ export default function Home() {
                 <Input
                   placeholder="Buscar segmentos..."
                   onChange={handleInputChange}
-                  onKeyDown={(e) => e.stopPropagation()}
+                  onKeyDown={e => e.stopPropagation()}
                 />
                 <SelectSeparator />
               </div>
@@ -446,7 +446,7 @@ export default function Home() {
                   </span>
                 </SelectLabel>
                 {/* Exibe os segmentos armazenados */}
-                {loadedSegments.map((item) => (
+                {loadedSegments.map(item => (
                   <SelectItem
                     key={item.segmento_id}
                     value={item.segmento_id.toString()}
@@ -459,7 +459,7 @@ export default function Home() {
                 variant="ghost"
                 size="sm"
                 className="w-full py-5"
-                onClick={() => setPageSegmento((prev) => prev + 1)}
+                onClick={() => setPageSegmento(prev => prev + 1)}
                 disabled={isDisable}
               >
                 {isLoadingSegmento ? (
@@ -477,7 +477,7 @@ export default function Home() {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {projetos?.projetos.map((projeto) => (
+                {projetos?.projetos.map(projeto => (
                   <SelectItem
                     key={projeto.projeto_id}
                     value={projeto.projeto_id.toString()}
@@ -501,8 +501,8 @@ export default function Home() {
                     type="text"
                     placeholder="Pesquisar..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyDown={(e) => e.stopPropagation()}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    onKeyDown={e => e.stopPropagation()}
                     className="w-full rounded border px-2 py-1"
                   />
                 </div>
@@ -539,8 +539,8 @@ export default function Home() {
                     type="text"
                     placeholder="Pesquisar..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyDown={(e) => e.stopPropagation()}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    onKeyDown={e => e.stopPropagation()}
                     className="w-full rounded border px-2 py-1"
                   />
                 </div>
@@ -692,5 +692,5 @@ export default function Home() {
         </Button>
       </div>
     </>
-  )
+  );
 }

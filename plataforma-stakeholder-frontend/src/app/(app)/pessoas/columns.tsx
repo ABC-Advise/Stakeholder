@@ -1,42 +1,42 @@
-'use client'
+'use client';
 
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef } from '@tanstack/react-table';
+import { MoreHorizontal } from 'lucide-react';
 
-import { MoreHorizontal } from 'lucide-react'
-
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Checkbox } from '@/components/ui/checkbox'
-import { EditPessoaDialog } from './edit-pessoa-dialog'
-import { PessoaDetailsDialog } from './pessoa-details-dialog'
-import { DeletePessoaDialog } from './delete-pessoa-dialog'
+} from '@/components/ui/dropdown-menu';
+
+import { DeletePessoaDialog } from './delete-pessoa-dialog';
+import { EditPessoaDialog } from './edit-pessoa-dialog';
+import { PessoaDetailsDialog } from './pessoa-details-dialog';
 
 export type Pessoa = {
-  pessoa_id: number
-  firstname: string
-  lastname: string
-  cpf: string
-  linkedin: string
-  instagram: string
-  stakeholder: boolean
-  em_prospecao: boolean
-  pep: boolean
-  sexo: string
-  data_nascimento: string
-  nome_mae: string
-  idade: number
-  signo: string
-  obito: boolean
-  data_obito: string
-  renda_estimada: string
-  projeto_id: number
-}
+  pessoa_id: number;
+  firstname: string;
+  lastname: string;
+  cpf: string;
+  linkedin: string;
+  instagram: string;
+  stakeholder: boolean;
+  em_prospecao: boolean;
+  pep: boolean;
+  sexo: string;
+  data_nascimento: string;
+  nome_mae: string;
+  idade: number;
+  signo: string;
+  obito: boolean;
+  data_obito: string;
+  renda_estimada: string;
+  projeto_id: number;
+};
 
 export const columns: ColumnDef<Pessoa>[] = [
   {
@@ -47,14 +47,14 @@ export const columns: ColumnDef<Pessoa>[] = [
           table.getIsAllPageRowsSelected() ||
           (table.getIsSomePageRowsSelected() && 'indeterminate')
         }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
       />
     ),
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        onCheckedChange={value => row.toggleSelected(!!value)}
         aria-label="Select row"
       />
     ),
@@ -86,7 +86,7 @@ export const columns: ColumnDef<Pessoa>[] = [
     id: 'actions',
     enableHiding: false,
     cell: ({ row }) => {
-      const pessoa = row.original
+      const pessoa = row.original;
 
       return (
         <DropdownMenu>
@@ -112,7 +112,7 @@ export const columns: ColumnDef<Pessoa>[] = [
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
   },
-]
+];

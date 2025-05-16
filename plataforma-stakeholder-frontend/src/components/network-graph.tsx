@@ -1,13 +1,4 @@
-import {
-  CSSProperties,
-  FC,
-  useCallback,
-  useMemo,
-  useState,
-  useRef,
-  useEffect,
-} from 'react'
-
+// Bibliotecas externas
 import {
   SigmaContainer,
   useLoadGraph,
@@ -16,69 +7,90 @@ import {
   ControlsContainer,
   ZoomControl,
   FullScreenControl,
-} from '@react-sigma/core'
-import '@react-sigma/core/lib/style.css'
+} from '@react-sigma/core';
+import { NodeImageProgram } from '@sigma/node-image';
+import { useQuery } from '@tanstack/react-query';
+import Graph from 'graphology';
+import louvain from 'graphology-communities-louvain';
+import {
+  Settings,
+  ChevronsRight,
+  ChevronsLeft,
+  Loader2,
+  X,
+} from 'lucide-react';
+import Link from 'next/link';
 
-import { NodeImageProgram } from '@sigma/node-image'
+// React e hooks
+import {
+  CSSProperties,
+  FC,
+  useCallback,
+  useMemo,
+  useState,
+  useRef,
+  useEffect,
+} from 'react';
+import ForceGraph2D from 'react-force-graph-2d';
 
-import Graph from 'graphology'
-import louvain from 'graphology-communities-louvain'
-
+// Componentes UI
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from '@/components/ui/sheet'
+} from '@/components/ui/sheet';
 
-import { Loader2, X } from 'lucide-react'
+// Serviços e utilitários
+import { getEmpresas } from '@/http/empresa/get-empresas';
+import { getLawyers } from '@/http/lawyers/get-lawyers';
+import { getOffices } from '@/http/offices/get-offices';
+import { getPessoas } from '@/http/pessoa/get-pessoas';
+import { formatCpfCnpj } from '@/utils/format-cpf-cnpj';
 
-import { useQuery } from '@tanstack/react-query'
-import { getLawyers } from '@/http/lawyers/get-lawyers'
-import { getOffices } from '@/http/offices/get-offices'
-import { getEmpresas } from '@/http/empresa/get-empresas'
-import { getPessoas } from '@/http/pessoa/get-pessoas'
-import { Separator } from './ui/separator'
-import { formatCpfCnpj } from '@/utils/format-cpf-cnpj'
+import { Separator } from './ui/separator';
 
-import ForceGraph2D from 'react-force-graph-2d'
-
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Settings, ChevronsRight, ChevronsLeft } from 'lucide-react'
-import Link from 'next/link'
+// Estilos
+import '@react-sigma/core/lib/style.css';
 
 type Links = {
-  source: string
-  target: string
-  label: string
-}
+  source: string;
+  target: string;
+  label: string;
+};
 
 type Nodes = {
-  id: string
-  subgroup: string
-  title: string
-  label: string
-  type: string
-  documento: string
-  em_prospeccao: boolean
-  matched: boolean
-  root: boolean
-  stakeholder: boolean
-}
+  id: string;
+  subgroup: string;
+  title: string;
+  label: string;
+  type: string;
+  documento: string;
+  em_prospeccao: boolean;
+  matched: boolean;
+  root: boolean;
+  stakeholder: boolean;
+};
 
 type NetworkGraphProps = {
   clusters: {
-    links: Links[]
-    nodes: Nodes[]
-  }[]
-}
+    links: Links[];
+    nodes: Nodes[];
+  }[];
+};
 
 export const NetworkGraph: FC<
   NetworkGraphProps & { style?: CSSProperties }
 > = ({ clusters, style }) => {
   console.log('NetworkGraph component rendering (using react-force-graph)');
+
+  // Mova todos os useRefs para o topo do componente
+  const fgRef = useRef<any>();
+  const graphRef = useRef<Graph | null>(null);
+  const imageCacheRef = useRef<Record<string, HTMLImageElement>>({});
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedNodeData, setSelectedNodeData] = useState<Nodes | null>(null);
@@ -98,55 +110,64 @@ export const NetworkGraph: FC<
   const { data: queryData, isLoading: isQueryLoading } = useQuery<any>({
     queryKey: ['node-details', selectedNodeData?.id],
     queryFn: async () => {
-      if (!selectedNodeData) return null
+      if (!selectedNodeData) return null;
 
-      const id = Number(selectedNodeData.id.split(':')[1])
+      const id = Number(selectedNodeData.id.split(':')[1]);
 
       switch (selectedNodeData.type) {
         case 'Advogado':
-          return getLawyers({ advogado_id: id })
+          return getLawyers({ advogado_id: id });
         case 'Escritorio':
-          return getOffices({ escritorio_id: id })
+          return getOffices({ escritorio_id: id });
         case 'Empresa':
-          return getEmpresas({ empresa_id: id })
+          return getEmpresas({ empresa_id: id });
         case 'Pessoa':
-          return getPessoas({ pessoa_id: id })
+          return getPessoas({ pessoa_id: id });
         default:
-          return Promise.reject(new Error('Tipo desconhecido'))
+          return Promise.reject(new Error('Tipo desconhecido'));
       }
     },
     enabled: isSheetOpen && !!selectedNodeData,
-  })
+  });
 
-  const handleNodeClick = useCallback((node: any /* Use more specific type if available from react-force-graph */) => {
-    console.log('Node clicked (react-force-graph):', node);
-    const originalNode = clusters
-      .flatMap((cluster) => cluster.nodes)
-      .find((n) => n.id === node.id);
+  const handleNodeClick = useCallback(
+    (
+      node: any /* Use more specific type if available from react-force-graph */
+    ) => {
+      console.log('Node clicked (react-force-graph):', node);
+      const originalNode = clusters
+        .flatMap(cluster => cluster.nodes)
+        .find(n => n.id === node.id);
 
-    if (originalNode) {
-      setSelectedNodeData(originalNode);
-      setIsSheetOpen(true);
-    } else {
-      console.warn("Original node data (type Nodes) not found for clicked node:", node.id, "Displaying data from graph node.");
-      setSelectedNodeData({
-        id: node.id,
-        label: node.name || node.id,
-        type: node.originalType || 'Desconhecido',
-        subgroup: node.subgroup || '',
-        title: node.name || node.id,
-        documento: node.documento || '',
-        em_prospeccao: node.em_prospeccao || false,
-        matched: node.isMatched || false,
-        root: node.val > 10,
-        stakeholder: node.isStakeholder || false,
-      });
-      setIsSheetOpen(true);
-    }
-  }, [clusters]);
+      if (originalNode) {
+        setSelectedNodeData(originalNode);
+        setIsSheetOpen(true);
+      } else {
+        console.warn(
+          'Original node data (type Nodes) not found for clicked node:',
+          node.id,
+          'Displaying data from graph node.'
+        );
+        setSelectedNodeData({
+          id: node.id,
+          label: node.name || node.id,
+          type: node.originalType || 'Desconhecido',
+          subgroup: node.subgroup || '',
+          title: node.name || node.id,
+          documento: node.documento || '',
+          em_prospeccao: node.em_prospeccao || false,
+          matched: node.isMatched || false,
+          root: node.val > 10,
+          stakeholder: node.isStakeholder || false,
+        });
+        setIsSheetOpen(true);
+      }
+    },
+    [clusters]
+  );
 
   const graphData = useMemo(() => {
-    console.log("Transforming data for react-force-graph with Louvain...");
+    console.log('Transforming data for react-force-graph with Louvain...');
     const graph = new Graph({ multi: false, allowSelfLoops: false });
 
     const uniqueNodes = new Map<string, any>();
@@ -155,7 +176,7 @@ export const NetworkGraph: FC<
     const ROOT_NODE_SIZE = 20;
 
     if (!clusters) {
-      console.log("No clusters data, returning empty graph.");
+      console.log('No clusters data, returning empty graph.');
       return { nodes: [], links: [] };
     }
 
@@ -185,7 +206,10 @@ export const NetworkGraph: FC<
         const pairKey = [link.source, link.target].sort().join('--');
 
         if (sourceExists && targetExists && !processedLinkPairs.has(pairKey)) {
-          if (!graph.hasEdge(link.source, link.target) && !graph.hasEdge(link.target, link.source)) {
+          if (
+            !graph.hasEdge(link.source, link.target) &&
+            !graph.hasEdge(link.target, link.source)
+          ) {
             try {
               graph.addEdge(link.source, link.target, {
                 name: link.label || 'Ligação',
@@ -195,7 +219,10 @@ export const NetworkGraph: FC<
               });
               processedLinkPairs.add(pairKey);
             } catch (error) {
-              console.error(`Failed to add edge between ${link.source} and ${link.target}:`, error);
+              console.error(
+                `Failed to add edge between ${link.source} and ${link.target}:`,
+                error
+              );
             }
           }
         } else if (!sourceExists || !targetExists) {
@@ -205,26 +232,29 @@ export const NetworkGraph: FC<
     });
 
     if (graph.order > 0 && graph.size > 0) {
-      console.log(`Running Louvain on graph with ${graph.order} nodes and ${graph.size} edges.`);
+      console.log(
+        `Running Louvain on graph with ${graph.order} nodes and ${graph.size} edges.`
+      );
       try {
         louvain.assign(graph);
-        console.log("Louvain community detection complete.");
+        console.log('Louvain community detection complete.');
         const communityMap: { [key: number]: number } = {};
         graph.forEachNode((node, attrs) => {
           if (attrs.community !== undefined) {
-            communityMap[attrs.community] = (communityMap[attrs.community] || 0) + 1;
+            communityMap[attrs.community] =
+              (communityMap[attrs.community] || 0) + 1;
           }
         });
-        console.log("Community distribution:", communityMap);
+        console.log('Community distribution:', communityMap);
       } catch (e) {
-        console.error("Error running Louvain:", e);
-        graph.forEachNode((node) => {
+        console.error('Error running Louvain:', e);
+        graph.forEachNode(node => {
           graph.setNodeAttribute(node, 'community', 0);
         });
       }
     } else {
-      console.log("Skipping Louvain: Graph is empty or has no edges.");
-      graph.forEachNode((node) => {
+      console.log('Skipping Louvain: Graph is empty or has no edges.');
+      graph.forEachNode(node => {
         graph.setNodeAttribute(node, 'community', 0);
       });
     }
@@ -232,29 +262,41 @@ export const NetworkGraph: FC<
     const nodesArray = graph.mapNodes((nodeId, attributes) => ({
       ...attributes,
     }));
-    const linksArray = graph.mapEdges((edge, attributes, source, target, sourceAttributes, targetAttributes) => ({
-      ...attributes,
-      source: source,
-      target: target,
-      sourceNode: sourceAttributes,
-      targetNode: targetAttributes,
-    }));
+    const linksArray = graph.mapEdges(
+      (
+        edge,
+        attributes,
+        source,
+        target,
+        sourceAttributes,
+        targetAttributes
+      ) => ({
+        ...attributes,
+        source,
+        target,
+        sourceNode: sourceAttributes,
+        targetNode: targetAttributes,
+      })
+    );
 
-    console.log(`Data transformed: ${nodesArray.length} nodes, ${linksArray.length} links. Community info added.`);
+    console.log(
+      `Data transformed: ${nodesArray.length} nodes, ${linksArray.length} links. Community info added.`
+    );
     return { nodes: nodesArray, links: linksArray };
-
   }, [clusters]);
 
   // --- START: Image Preloading ---
-  const imageCacheRef = useRef<Record<string, HTMLImageElement>>({});
-  const iconUrls = useMemo(() => [
-    '/icons/pessoa.png',
-    '/icons/stakeholder2.png',
-    '/icons/stakeholder-matched.png',
-    '/icons/empresa.png',
-    '/icons/socio.png',
-    '/icons/advogado.png',
-  ], []);
+  const iconUrls = useMemo(
+    () => [
+      '/icons/pessoa.png',
+      '/icons/stakeholder2.png',
+      '/icons/stakeholder-matched.png',
+      '/icons/empresa.png',
+      '/icons/socio.png',
+      '/icons/advogado.png',
+    ],
+    []
+  );
 
   useEffect(() => {
     console.log('Preloading icons...');
@@ -301,22 +343,22 @@ export const NetworkGraph: FC<
       default:
         return '/icons/pessoa.png';
     }
-  }
+  };
 
   // Effect para ajustar as forças D3, agora dependendo dos estados
   useEffect(() => {
     if (fgRef.current && graphData.nodes.length > 0) {
-      console.log("Applying custom D3 forces based on UI controls...");
+      console.log('Applying custom D3 forces based on UI controls...');
       let simulationReheated = false;
       const d3 = fgRef.current.d3; // Acessa d3 para adicionar novas forças
 
       // 1. Ajustar Repulsão (Charge)
       const chargeForce = fgRef.current.d3Force('charge');
       if (chargeForce) {
-        chargeForce
-          .strength(chargeStrength)
-          .distanceMax(distanceMax);
-        console.log(`Set charge strength to ${chargeStrength} and distanceMax to ${distanceMax}.`);
+        chargeForce.strength(chargeStrength).distanceMax(distanceMax);
+        console.log(
+          `Set charge strength to ${chargeStrength} and distanceMax to ${distanceMax}.`
+        );
         simulationReheated = true;
       }
 
@@ -327,7 +369,9 @@ export const NetworkGraph: FC<
         linkForce.strength(linkStrength); // Usar estado unificado
         linkForce.distance(linkDistance); // Usar estado unificado
 
-        console.log(`Set link strength (${linkStrength}) and distance (${linkDistance})`);
+        console.log(
+          `Set link strength (${linkStrength}) and distance (${linkDistance})`
+        );
         simulationReheated = true;
       }
 
@@ -335,7 +379,10 @@ export const NetworkGraph: FC<
       const collideForce = fgRef.current.d3Force('collide');
       if (d3) {
         if (!collideForce) {
-          fgRef.current.d3Force('collide', d3.forceCollide().radius(collideRadius)); // Usar raio fixo do estado
+          fgRef.current.d3Force(
+            'collide',
+            d3.forceCollide().radius(collideRadius)
+          ); // Usar raio fixo do estado
           console.log(`Added collision force with radius ${collideRadius}.`);
         } else {
           collideForce.radius(collideRadius); // Usar raio fixo do estado
@@ -343,7 +390,9 @@ export const NetworkGraph: FC<
         }
         simulationReheated = true;
       } else {
-        console.warn("Could not access d3 object to configure collision force.");
+        console.warn(
+          'Could not access d3 object to configure collision force.'
+        );
       }
 
       // 4. Ajustar Força de Centralização
@@ -353,7 +402,10 @@ export const NetworkGraph: FC<
         console.log(`Adjusted center force strength to ${centerStrength}.`);
         simulationReheated = true;
       } else if (d3) {
-        fgRef.current.d3Force('center', d3.forceCenter().strength(centerStrength));
+        fgRef.current.d3Force(
+          'center',
+          d3.forceCenter().strength(centerStrength)
+        );
         console.log(`Added center force with strength ${centerStrength}.`);
         simulationReheated = true;
       }
@@ -377,7 +429,7 @@ export const NetworkGraph: FC<
       const currentForceX = fgRef.current.d3Force('x');
       if (currentForceX) {
         fgRef.current.d3Force('x', null); // Remove a força X se existir
-        console.log("Removed forceX.");
+        console.log('Removed forceX.');
         simulationReheated = true;
       }
 
@@ -400,13 +452,13 @@ export const NetworkGraph: FC<
       const currentForceY = fgRef.current.d3Force('y');
       if (currentForceY) {
         fgRef.current.d3Force('y', null); // Remove a força Y se existir
-        console.log("Removed forceY.");
+        console.log('Removed forceY.');
         simulationReheated = true;
       }
 
       // Reaquecer a simulação APENAS se alguma força foi modificada
       if (simulationReheated) {
-        console.log("Reheating simulation...");
+        console.log('Reheating simulation...');
         fgRef.current.d3ReheatSimulation();
       }
     }
@@ -424,10 +476,10 @@ export const NetworkGraph: FC<
     return <div>Carregando ou sem dados para o grafo...</div>;
   }
 
-  const fgRef = useRef<any>();
-
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100vh', ...style }}>
+    <div
+      style={{ position: 'relative', width: '100%', height: '100vh', ...style }}
+    >
       <ForceGraph2D
         ref={fgRef}
         graphData={graphData}
@@ -482,7 +534,10 @@ export const NetworkGraph: FC<
                 imgSize
               );
             } catch (e) {
-              console.error(`Error drawing image ${iconUrl} for node ${node.id}:`, e);
+              console.error(
+                `Error drawing image ${iconUrl} for node ${node.id}:`,
+                e
+              );
             }
           } else {
             ctx.beginPath();
@@ -567,24 +622,48 @@ export const NetworkGraph: FC<
                           {(() => {
                             let id = '';
                             let tipo = '';
-                            if (selectedNodeData.type === 'Empresa' && data.cnpj) {
+                            if (
+                              selectedNodeData.type === 'Empresa' &&
+                              data.cnpj
+                            ) {
                               id = data.cnpj;
                               tipo = 'empresa';
-                            } else if (selectedNodeData.type === 'Pessoa' && data.cpf) {
+                            } else if (
+                              selectedNodeData.type === 'Pessoa' &&
+                              data.cpf
+                            ) {
                               id = data.cpf;
                               tipo = 'pessoa';
                             } else if (selectedNodeData.type === 'Advogado') {
-                              if (data.cpf && data.cpf.trim() !== '' && data.cpf !== 'None') {
+                              if (
+                                data.cpf &&
+                                data.cpf.trim() !== '' &&
+                                data.cpf !== 'None'
+                              ) {
                                 id = data.cpf;
-                              } else if (data.oab && data.oab.trim() !== '' && data.oab !== 'None') {
+                              } else if (
+                                data.oab &&
+                                data.oab.trim() !== '' &&
+                                data.oab !== 'None'
+                              ) {
                                 id = data.oab;
                               }
                               tipo = 'advogado';
                             }
                             if (id && tipo) {
                               return (
-                                <Link href={`/instagram-search/relacionados?id=${encodeURIComponent(id)}&type=${tipo}`} passHref legacyBehavior>
-                                  <Button variant="outline" size="sm" className="ml-1">Buscar Relacionados</Button>
+                                <Link
+                                  href={`/instagram-search/relacionados?id=${encodeURIComponent(id)}&type=${tipo}`}
+                                  passHref
+                                  legacyBehavior
+                                >
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="ml-1"
+                                  >
+                                    Buscar Relacionados
+                                  </Button>
                                 </Link>
                               );
                             }
@@ -592,7 +671,9 @@ export const NetworkGraph: FC<
                           })()}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {data.instagram !== 'None' ? data.instagram : 'Não informado'}
+                          {data.instagram !== 'None'
+                            ? data.instagram
+                            : 'Não informado'}
                         </p>
                       </div>
                       <div className="space-y-1">
@@ -652,17 +733,34 @@ export const NetworkGraph: FC<
                           {(() => {
                             let id = '';
                             let tipo = '';
-                            if (selectedNodeData.type === 'Empresa' && data.cnpj) {
+                            if (
+                              selectedNodeData.type === 'Empresa' &&
+                              data.cnpj
+                            ) {
                               id = data.cnpj;
                               tipo = 'empresa';
-                            } else if ((selectedNodeData.type === 'Pessoa' || selectedNodeData.type === 'Advogado') && data.cpf) {
+                            } else if (
+                              (selectedNodeData.type === 'Pessoa' ||
+                                selectedNodeData.type === 'Advogado') &&
+                              data.cpf
+                            ) {
                               id = data.cpf;
                               tipo = selectedNodeData.type.toLowerCase();
                             }
                             if (id && tipo) {
                               return (
-                                <Link href={`/instagram-search/relacionados?id=${encodeURIComponent(id)}&type=${tipo}`} passHref legacyBehavior>
-                                  <Button variant="outline" size="sm" className="ml-1">Buscar Relacionados</Button>
+                                <Link
+                                  href={`/instagram-search/relacionados?id=${encodeURIComponent(id)}&type=${tipo}`}
+                                  passHref
+                                  legacyBehavior
+                                >
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="ml-1"
+                                  >
+                                    Buscar Relacionados
+                                  </Button>
                                 </Link>
                               );
                             }
@@ -670,7 +768,9 @@ export const NetworkGraph: FC<
                           })()}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {data.instagram !== 'None' ? data.instagram : 'Não informado'}
+                          {data.instagram !== 'None'
+                            ? data.instagram
+                            : 'Não informado'}
                         </p>
                       </div>
                       <div className="space-y-1">
@@ -813,17 +913,34 @@ export const NetworkGraph: FC<
                           {(() => {
                             let id = '';
                             let tipo = '';
-                            if (selectedNodeData.type === 'Empresa' && data.cnpj) {
+                            if (
+                              selectedNodeData.type === 'Empresa' &&
+                              data.cnpj
+                            ) {
                               id = data.cnpj;
                               tipo = 'empresa';
-                            } else if ((selectedNodeData.type === 'Pessoa' || selectedNodeData.type === 'Advogado') && data.cpf) {
+                            } else if (
+                              (selectedNodeData.type === 'Pessoa' ||
+                                selectedNodeData.type === 'Advogado') &&
+                              data.cpf
+                            ) {
                               id = data.cpf;
                               tipo = selectedNodeData.type.toLowerCase();
                             }
                             if (id && tipo) {
                               return (
-                                <Link href={`/instagram-search/relacionados?id=${encodeURIComponent(id)}&type=${tipo}`} passHref legacyBehavior>
-                                  <Button variant="outline" size="sm" className="ml-1">Buscar Relacionados</Button>
+                                <Link
+                                  href={`/instagram-search/relacionados?id=${encodeURIComponent(id)}&type=${tipo}`}
+                                  passHref
+                                  legacyBehavior
+                                >
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="ml-1"
+                                  >
+                                    Buscar Relacionados
+                                  </Button>
                                 </Link>
                               );
                             }
@@ -831,7 +948,9 @@ export const NetworkGraph: FC<
                           })()}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {data.instagram !== 'None' ? data.instagram : 'Não informado'}
+                          {data.instagram !== 'None'
+                            ? data.instagram
+                            : 'Não informado'}
                         </p>
                       </div>
                       <div className="space-y-1">
@@ -932,17 +1051,34 @@ export const NetworkGraph: FC<
                           {(() => {
                             let id = '';
                             let tipo = '';
-                            if (selectedNodeData.type === 'Empresa' && data.cnpj) {
+                            if (
+                              selectedNodeData.type === 'Empresa' &&
+                              data.cnpj
+                            ) {
                               id = data.cnpj;
                               tipo = 'empresa';
-                            } else if ((selectedNodeData.type === 'Pessoa' || selectedNodeData.type === 'Advogado') && data.cpf) {
+                            } else if (
+                              (selectedNodeData.type === 'Pessoa' ||
+                                selectedNodeData.type === 'Advogado') &&
+                              data.cpf
+                            ) {
                               id = data.cpf;
                               tipo = selectedNodeData.type.toLowerCase();
                             }
                             if (id && tipo) {
                               return (
-                                <Link href={`/instagram-search/relacionados?id=${encodeURIComponent(id)}&type=${tipo}`} passHref legacyBehavior>
-                                  <Button variant="outline" size="sm" className="ml-1">Buscar Relacionados</Button>
+                                <Link
+                                  href={`/instagram-search/relacionados?id=${encodeURIComponent(id)}&type=${tipo}`}
+                                  passHref
+                                  legacyBehavior
+                                >
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="ml-1"
+                                  >
+                                    Buscar Relacionados
+                                  </Button>
                                 </Link>
                               );
                             }
@@ -950,7 +1086,9 @@ export const NetworkGraph: FC<
                           })()}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {data.instagram !== 'None' ? data.instagram : 'Não informado'}
+                          {data.instagram !== 'None'
+                            ? data.instagram
+                            : 'Não informado'}
                         </p>
                       </div>
                       <div className="space-y-1">
@@ -992,7 +1130,10 @@ export const NetworkGraph: FC<
 
           <div className="space-y-4">
             <div className="space-y-1">
-              <Label htmlFor="chargeStrength" className="text-sm font-medium flex justify-between">
+              <Label
+                htmlFor="chargeStrength"
+                className="text-sm font-medium flex justify-between"
+              >
                 Repulsão (Charge) <span>{chargeStrength.toFixed(2)}</span>
               </Label>
               <input
@@ -1002,13 +1143,18 @@ export const NetworkGraph: FC<
                 max={0}
                 step={1}
                 value={chargeStrength}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setChargeStrength(parseFloat(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setChargeStrength(parseFloat(e.target.value))
+                }
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
               />
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="distanceMax" className="text-sm font-medium flex justify-between">
+              <Label
+                htmlFor="distanceMax"
+                className="text-sm font-medium flex justify-between"
+              >
                 Alcance Repulsão (Max) <span>{distanceMax.toFixed(0)}</span>
               </Label>
               <input
@@ -1018,13 +1164,18 @@ export const NetworkGraph: FC<
                 max={1000}
                 step={10}
                 value={distanceMax}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDistanceMax(parseFloat(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setDistanceMax(parseFloat(e.target.value))
+                }
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
               />
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="linkStrength" className="text-sm font-medium flex justify-between">
+              <Label
+                htmlFor="linkStrength"
+                className="text-sm font-medium flex justify-between"
+              >
                 Força Link <span>{linkStrength.toFixed(2)}</span>
               </Label>
               <input
@@ -1034,13 +1185,18 @@ export const NetworkGraph: FC<
                 max={1}
                 step={0.01}
                 value={linkStrength}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLinkStrength(parseFloat(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setLinkStrength(parseFloat(e.target.value))
+                }
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
               />
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="linkDistance" className="text-sm font-medium flex justify-between">
+              <Label
+                htmlFor="linkDistance"
+                className="text-sm font-medium flex justify-between"
+              >
                 Distância Link <span>{linkDistance.toFixed(0)}</span>
               </Label>
               <input
@@ -1050,13 +1206,18 @@ export const NetworkGraph: FC<
                 max={100}
                 step={1}
                 value={linkDistance}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLinkDistance(parseFloat(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setLinkDistance(parseFloat(e.target.value))
+                }
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
               />
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="centerStrength" className="text-sm font-medium flex justify-between">
+              <Label
+                htmlFor="centerStrength"
+                className="text-sm font-medium flex justify-between"
+              >
                 Força Central <span>{centerStrength.toFixed(2)}</span>
               </Label>
               <input
@@ -1066,13 +1227,18 @@ export const NetworkGraph: FC<
                 max={1}
                 step={0.01}
                 value={centerStrength}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCenterStrength(parseFloat(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setCenterStrength(parseFloat(e.target.value))
+                }
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
               />
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="collideRadius" className="text-sm font-medium flex justify-between">
+              <Label
+                htmlFor="collideRadius"
+                className="text-sm font-medium flex justify-between"
+              >
                 Raio Colisão <span>{collideRadius.toFixed(0)}</span>
               </Label>
               <input
@@ -1082,13 +1248,18 @@ export const NetworkGraph: FC<
                 max={20}
                 step={1}
                 value={collideRadius}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCollideRadius(parseFloat(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setCollideRadius(parseFloat(e.target.value))
+                }
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
               />
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="alphaDecay" className="text-sm font-medium flex justify-between">
+              <Label
+                htmlFor="alphaDecay"
+                className="text-sm font-medium flex justify-between"
+              >
                 Decaimento Alpha <span>{alphaDecay.toFixed(4)}</span>
               </Label>
               <input
@@ -1098,13 +1269,18 @@ export const NetworkGraph: FC<
                 max={0.1}
                 step={0.001}
                 value={alphaDecay}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAlphaDecay(parseFloat(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setAlphaDecay(parseFloat(e.target.value))
+                }
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
               />
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="velocityDecay" className="text-sm font-medium flex justify-between">
+              <Label
+                htmlFor="velocityDecay"
+                className="text-sm font-medium flex justify-between"
+              >
                 Decaimento Velocidade <span>{velocityDecay.toFixed(2)}</span>
               </Label>
               <input
@@ -1114,7 +1290,9 @@ export const NetworkGraph: FC<
                 max={1.0}
                 step={0.01}
                 value={velocityDecay}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setVelocityDecay(parseFloat(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setVelocityDecay(parseFloat(e.target.value))
+                }
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
               />
             </div>

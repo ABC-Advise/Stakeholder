@@ -1,17 +1,16 @@
-'use client'
+'use client';
 
-import { useQuery } from '@tanstack/react-query'
-import { columns } from './columns'
-import { DataTable } from './data-table'
-import { FilterX, ListFilter, Loader2, Plus, Search } from 'lucide-react'
-import { Pagination } from '@/components/pagination'
-import { getStakeholders } from '@/http/stakeholders/get-stakeholders'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { z } from 'zod'
-import { DataTableSkeleton } from './data-table-skeleton'
-import { Input } from '@/components/ui/input'
-import { FormEvent, useState } from 'react'
-import { DropdownMenuCheckboxItemProps } from '@radix-ui/react-dropdown-menu'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { DropdownMenuCheckboxItemProps } from '@radix-ui/react-dropdown-menu';
+import { useQuery } from '@tanstack/react-query';
+import { FilterX, ListFilter, Loader2, Plus, Search } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { FormEvent, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+import { Pagination } from '@/components/pagination';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -19,11 +18,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
-import { CreateStakeholderDialog } from './create-stakeholder-dialog'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -32,36 +28,42 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { getUfs } from '@/http/get-ufs'
-import { getCitiesByUf } from '@/http/get-cities-by-uf'
+} from '@/components/ui/select';
+import { getCitiesByUf } from '@/http/get-cities-by-uf';
+import { getUfs } from '@/http/get-ufs';
+import { getStakeholders } from '@/http/stakeholders/get-stakeholders';
 
-type Checked = DropdownMenuCheckboxItemProps['checked']
+import { columns } from './columns';
+import { CreateStakeholderDialog } from './create-stakeholder-dialog';
+import { DataTable } from './data-table';
+import { DataTableSkeleton } from './data-table-skeleton';
+
+type Checked = DropdownMenuCheckboxItemProps['checked'];
 
 const searchFormSchema = z.object({
   documento: z.string().min(1, 'Digite um documento válido.'),
-})
+});
 
-type SearchFormSchema = z.infer<typeof searchFormSchema>
+type SearchFormSchema = z.infer<typeof searchFormSchema>;
 
 export default function StakeholdersPage() {
-  const [isOpenCreateStakeholder, setIsOpenCreateStakeholder] = useState(false)
+  const [isOpenCreateStakeholder, setIsOpenCreateStakeholder] = useState(false);
 
-  const [showProspect, setShowProspect] = useState<Checked>(false)
-  const [showAssociado, setShowAssociado] = useState<Checked>(false)
+  const [showProspect, setShowProspect] = useState<Checked>(false);
+  const [showAssociado, setShowAssociado] = useState<Checked>(false);
 
-  const searchParams = useSearchParams()
-  const pathname = usePathname()
-  const router = useRouter()
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
 
-  const [selectedUF, setSelectedUF] = useState<string | null>(null)
-  const [selectedCity, setSelectedCity] = useState<string | null>(null)
+  const [selectedUF, setSelectedUF] = useState<string | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
 
   // Busca UFs
   const { data: ufs, isLoading: isLoadingUFs } = useQuery({
     queryKey: ['ufs'],
     queryFn: getUfs,
-  })
+  });
 
   // Busca cidades com base na UF selecionada
   const {
@@ -72,7 +74,7 @@ export default function StakeholdersPage() {
     queryKey: ['cities', selectedUF],
     queryFn: () => getCitiesByUf(selectedUF!),
     enabled: !!selectedUF, // Só executa quando uma UF for selecionada
-  })
+  });
 
   const {
     register,
@@ -81,19 +83,19 @@ export default function StakeholdersPage() {
     formState: { errors },
   } = useForm<SearchFormSchema>({
     resolver: zodResolver(searchFormSchema),
-  })
+  });
 
-  const documento = searchParams.get('documento') ?? null
+  const documento = searchParams.get('documento') ?? null;
 
   const page = z.coerce
     .number()
-    .transform((page) => page)
-    .parse(searchParams.get('page') ?? '1')
+    .transform(page => page)
+    .parse(searchParams.get('page') ?? '1');
 
   const size = z.coerce
     .number()
-    .transform((size) => size)
-    .parse(searchParams.get('size') ?? '10')
+    .transform(size => size)
+    .parse(searchParams.get('size') ?? '10');
 
   const { data, isLoading } = useQuery({
     queryKey: [
@@ -116,37 +118,37 @@ export default function StakeholdersPage() {
         uf: selectedUF,
         cidade: selectedCity,
       }),
-  })
+  });
 
   function handlePaginate(page: number) {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    params.set('page', (page + 1).toString())
+    params.set('page', (page + 1).toString());
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   function handleClearFilters() {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
-    params.delete('page')
-    params.delete('size')
-    params.delete('documento')
-    setShowProspect(false)
-    setShowAssociado(false)
-    setSelectedCity(null)
-    setSelectedUF(null)
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    params.delete('page');
+    params.delete('size');
+    params.delete('documento');
+    setShowProspect(false);
+    setShowAssociado(false);
+    setSelectedCity(null);
+    setSelectedUF(null);
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   function handleSearchDocument(data: SearchFormSchema) {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    params.set('documento', data.documento)
+    params.set('documento', data.documento);
 
-    reset()
+    reset();
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   return (
@@ -187,7 +189,7 @@ export default function StakeholdersPage() {
 
           <div className="flex items-center gap-2">
             {/* Select de UFs */}
-            <Select onValueChange={(uf) => setSelectedUF(uf)}>
+            <Select onValueChange={uf => setSelectedUF(uf)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Selecione uma UF" />
               </SelectTrigger>
@@ -210,7 +212,7 @@ export default function StakeholdersPage() {
             </Select>
 
             {/* Select de Cidades */}
-            <Select onValueChange={(city) => setSelectedCity(city)}>
+            <Select onValueChange={city => setSelectedCity(city)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Selecione uma cidade" />
               </SelectTrigger>
@@ -291,5 +293,5 @@ export default function StakeholdersPage() {
         {isLoading && <DataTableSkeleton />}
       </div>
     </main>
-  )
+  );
 }

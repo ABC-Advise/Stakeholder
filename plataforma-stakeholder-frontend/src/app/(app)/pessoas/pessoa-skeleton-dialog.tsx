@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { DialogFooter, DialogHeader } from '@/components/ui/dialog'
-import { Skeleton } from '@/components/ui/skeleton'
+import { DialogFooter, DialogHeader } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function PessoaSkeletonDialog() {
   return (
@@ -32,5 +32,5 @@ export function PessoaSkeletonDialog() {
         <Skeleton className="h-10 w-full" />
       </DialogFooter>
     </div>
-  )
+  );
 }

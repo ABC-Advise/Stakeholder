@@ -1,6 +1,13 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -10,20 +17,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useToast } from '@/hooks/use-toast'
-import { getOffices } from '@/http/offices/get-offices'
-import { updateOffice } from '@/http/offices/update-office'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { Office } from './columns'
-import { OfficeSkeletonDialog } from './office-skeleton-dialog'
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { getOffices } from '@/http/offices/get-offices';
+import { updateOffice } from '@/http/offices/update-office';
+
+import { Office } from './columns';
+import { OfficeSkeletonDialog } from './office-skeleton-dialog';
 
 const upddateFormSchema = z.object({
   nome_fantasia: z
@@ -32,26 +34,26 @@ const upddateFormSchema = z.object({
   razao_social: z
     .string()
     .min(1, { message: 'Razão social é um campo obrigatório.' }),
-})
+});
 
-type UpdateFormSchema = z.infer<typeof upddateFormSchema>
+type UpdateFormSchema = z.infer<typeof upddateFormSchema>;
 
 interface EditOfficeDialogProps {
-  office: Office
+  office: Office;
 }
 
 export function EditOfficeDialog({ office }: EditOfficeDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
     queryKey: ['offices', office.escritorio_id],
     queryFn: () => getOffices({ escritorio_id: office.escritorio_id }),
     enabled: isOpen,
-  })
+  });
 
   const {
     register,
@@ -60,14 +62,14 @@ export function EditOfficeDialog({ office }: EditOfficeDialogProps) {
     formState: { isSubmitting, errors },
   } = useForm<UpdateFormSchema>({
     resolver: zodResolver(upddateFormSchema),
-  })
+  });
 
   const { mutateAsync: updateOfficeFn } = useMutation({
     mutationFn: updateOffice,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['offices'] })
+      queryClient.invalidateQueries({ queryKey: ['offices'] });
     },
-  })
+  });
 
   async function handleUpdateOffice(data: UpdateFormSchema) {
     try {
@@ -75,24 +77,24 @@ export function EditOfficeDialog({ office }: EditOfficeDialogProps) {
         escritorio_id: office.escritorio_id,
         razao_social: data.razao_social,
         nome_fantasia: data.nome_fantasia,
-      })
+      });
 
-      reset()
+      reset();
 
-      setIsOpen(false)
+      setIsOpen(false);
 
       toast({
         title: 'Sucesso!',
         description: 'As informações sobre o escritório foram atualizadas.',
-      })
+      });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       toast({
         variant: 'destructive',
         title: 'Erro ao atualizar...',
         description:
           'Não foi possível atualizar as informações sobre o escritório.',
-      })
+      });
     }
   }
 
@@ -106,7 +108,7 @@ export function EditOfficeDialog({ office }: EditOfficeDialogProps) {
 
       <DialogContent>
         {data &&
-          data.escritorios.map((office) => {
+          data.escritorios.map(office => {
             return (
               <form
                 onSubmit={handleSubmit(handleUpdateOffice)}
@@ -170,11 +172,11 @@ export function EditOfficeDialog({ office }: EditOfficeDialogProps) {
                   </Button>
                 </DialogFooter>
               </form>
-            )
+            );
           })}
 
         {isLoading && <OfficeSkeletonDialog />}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,19 +1,15 @@
-'use client'
+'use client';
 
-import { useQuery } from '@tanstack/react-query'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { z } from 'zod'
-import { DataTable } from './data-table'
-import { columns } from './columns'
-import { Pagination } from '@/components/pagination'
-import { DataTableSkeleton } from './data-table-skeleton'
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query';
+import { debounce } from 'lodash';
+import { ChevronDown, FilterX, LoaderCircle, Plus, Search } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
+import { z } from 'zod';
 
-import { Input } from '@/components/ui/input'
-import { ChevronDown, FilterX, LoaderCircle, Plus, Search } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { getEmpresas } from '@/http/empresa/get-empresas'
-import { CreateEmpresaDialog } from './create-empresa-dialog'
+import { Pagination } from '@/components/pagination';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -23,39 +19,44 @@ import {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { getSegmento, GetSegmentoResponse } from '@/http/segmento/get-segmento'
-import { getPorteEmpresa } from '@/http/porte/get-porte-empresa'
-import { getCitiesByUf } from '@/http/get-cities-by-uf'
-import { getUfs } from '@/http/get-ufs'
-import { debounce } from 'lodash'
+} from '@/components/ui/select';
+import { getEmpresas } from '@/http/empresa/get-empresas';
+import { getCitiesByUf } from '@/http/get-cities-by-uf';
+import { getUfs } from '@/http/get-ufs';
+import { getPorteEmpresa } from '@/http/porte/get-porte-empresa';
+import { getSegmento, GetSegmentoResponse } from '@/http/segmento/get-segmento';
+
+import { columns } from './columns';
+import { CreateEmpresaDialog } from './create-empresa-dialog';
+import { DataTable } from './data-table';
+import { DataTableSkeleton } from './data-table-skeleton';
 
 const searchFormSchema = z.object({
   cnpj: z.string().min(1, 'Digite um CNPJ válido.'),
-})
+});
 
-type SearchFormSchema = z.infer<typeof searchFormSchema>
+type SearchFormSchema = z.infer<typeof searchFormSchema>;
 
 export default function EmpresaPage() {
-  const [isOpenCreateStakeholder, setIsOpenCreateStakeholder] = useState(false)
-  const searchParams = useSearchParams()
+  const [isOpenCreateStakeholder, setIsOpenCreateStakeholder] = useState(false);
+  const searchParams = useSearchParams();
 
-  const [searchType, setSearchType] = useState('cnpj')
+  const [searchType, setSearchType] = useState('cnpj');
 
-  const pathname = usePathname()
-  const router = useRouter()
+  const pathname = usePathname();
+  const router = useRouter();
 
-  const [selectedUF, setSelectedUF] = useState<string | null>(null)
-  const [selectedCity, setSelectedCity] = useState<string | null>(null)
+  const [selectedUF, setSelectedUF] = useState<string | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
 
-  const [search, setSearch] = useState('')
-  const [pageSegmento, setPageSegmento] = useState(1)
+  const [search, setSearch] = useState('');
+  const [pageSegmento, setPageSegmento] = useState(1);
 
   // Busca UFs
   const { data: ufs, isLoading: isLoadingUFs } = useQuery({
     queryKey: ['ufs'],
     queryFn: getUfs,
-  })
+  });
 
   // Busca cidades com base na UF selecionada
   const {
@@ -66,26 +67,26 @@ export default function EmpresaPage() {
     queryKey: ['cities', selectedUF],
     queryFn: () => getCitiesByUf(selectedUF!),
     enabled: !!selectedUF, // Só executa quando uma UF for selecionada
-  })
+  });
 
   const page = z.coerce
     .number()
-    .transform((page) => page)
-    .parse(searchParams.get('page') ?? '1')
+    .transform(page => page)
+    .parse(searchParams.get('page') ?? '1');
 
   const size = z.coerce
     .number()
-    .transform((size) => size)
-    .parse(searchParams.get('size') ?? '10')
+    .transform(size => size)
+    .parse(searchParams.get('size') ?? '10');
 
-  const cnpj = searchParams.get('cnpj') ?? null
-  const razao_social = searchParams.get('razao_social') ?? null
-  const segmento_id = searchParams.get('segmento_id') ?? null
-  const porte_id = searchParams.get('porte_id') ?? null
+  const cnpj = searchParams.get('cnpj') ?? null;
+  const razao_social = searchParams.get('razao_social') ?? null;
+  const segmento_id = searchParams.get('segmento_id') ?? null;
+  const porte_id = searchParams.get('porte_id') ?? null;
 
   const [loadedSegments, setLoadedSegments] = useState<
     GetSegmentoResponse['segmento_empresas']
-  >([])
+  >([]);
 
   const { data, isLoading } = useQuery({
     queryKey: [
@@ -110,120 +111,120 @@ export default function EmpresaPage() {
         uf: selectedUF,
         cidade: selectedCity,
       }),
-  })
+  });
 
   const { data: segmento, isLoading: isLoadingSegmento } = useQuery({
     queryKey: ['segmento_empresa', pageSegmento, size, search],
     queryFn: () => getSegmento({ page: pageSegmento, size, descricao: search }),
-  })
+  });
 
   const { data: porte, isLoading: isLoadingPorte } = useQuery({
     queryKey: ['porte_empresa', page, size],
     queryFn: () => getPorteEmpresa({ page: 1, size: 10 }),
-  })
+  });
 
   function handlePaginate(page: number) {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    params.set('page', (page + 1).toString())
+    params.set('page', (page + 1).toString());
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   function handleSelectChange(e: ChangeEvent<HTMLSelectElement>) {
-    setSearchType(e.target.value)
+    setSearchType(e.target.value);
   }
 
   function handleFilter(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+    e.preventDefault();
 
-    const data = new FormData(e.currentTarget)
-    const query = data.get('query')?.toString()
+    const data = new FormData(e.currentTarget);
+    const query = data.get('query')?.toString();
 
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
     if (query) {
       if (searchType === 'cnpj') {
-        params.set('cnpj', query)
+        params.set('cnpj', query);
       }
 
       if (searchType === 'razao_social') {
-        params.set('razao_social', query)
+        params.set('razao_social', query);
       }
 
-      router.replace(`${pathname}?${params.toString()}`)
+      router.replace(`${pathname}?${params.toString()}`);
     }
 
-    e.currentTarget.reset()
+    e.currentTarget.reset();
   }
 
   function handleFilterSegmento(id: string) {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    console.log(id)
+    console.log(id);
 
-    params.set('segmento_id', id)
+    params.set('segmento_id', id);
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   function handleFilterPorte(id: string) {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    console.log(id)
+    console.log(id);
 
-    params.set('porte_id', id)
+    params.set('porte_id', id);
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   function handleClearFilters() {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
-    params.delete('page')
-    params.delete('size')
-    params.delete('cnpj')
-    params.delete('razao_social')
-    params.delete('segmento_id')
-    params.delete('porte_id')
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    params.delete('page');
+    params.delete('size');
+    params.delete('cnpj');
+    params.delete('razao_social');
+    params.delete('segmento_id');
+    params.delete('porte_id');
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   useEffect(() => {
     if (segmento && segmento.segmento_empresas) {
       if (pageSegmento === 1) {
-        setLoadedSegments(segmento.segmento_empresas)
+        setLoadedSegments(segmento.segmento_empresas);
       } else {
-        setLoadedSegments((prev) => [...prev, ...segmento.segmento_empresas])
+        setLoadedSegments(prev => [...prev, ...segmento.segmento_empresas]);
       }
     }
-  }, [segmento, pageSegmento])
+  }, [segmento, pageSegmento]);
 
   // Função debounced para evitar muitas requisições enquanto o usuário digita
   const debouncedSearch = useMemo(
     () =>
       debounce((value: string) => {
         // Reinicia para a página 1 e atualiza a busca
-        setPageSegmento(1)
-        setSearch(value)
+        setPageSegmento(1);
+        setSearch(value);
       }, 300),
-    [],
-  )
+    []
+  );
 
   // Manipula as mudanças no input de busca
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const valor = e.target.value
+    const valor = e.target.value;
     if (valor === '') {
       // Se o campo estiver vazio, reinicia a página e a busca imediatamente,
       // fazendo com que a lista exiba os segmentos da primeira página padrão
-      setPageSegmento(1)
-      setSearch('')
+      setPageSegmento(1);
+      setSearch('');
     } else {
-      debouncedSearch(valor)
+      debouncedSearch(valor);
     }
-  }
+  };
 
-  const isDisable = segmento ? pageSegmento === segmento?.meta.pages : false
+  const isDisable = segmento ? pageSegmento === segmento?.meta.pages : false;
 
   return (
     <main className="relative mx-auto min-h-screen w-full max-w-[1200px] pb-16 pt-28">
@@ -289,7 +290,7 @@ export default function EmpresaPage() {
         <div className="flex items-end justify-between">
           <div className="flex items-end gap-2">
             {/* Select de UFs */}
-            <Select onValueChange={(uf) => setSelectedUF(uf)}>
+            <Select onValueChange={uf => setSelectedUF(uf)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Selecione uma UF" />
               </SelectTrigger>
@@ -311,7 +312,7 @@ export default function EmpresaPage() {
             </Select>
 
             {/* Select de Cidades */}
-            <Select onValueChange={(city) => setSelectedCity(city)}>
+            <Select onValueChange={city => setSelectedCity(city)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Selecione uma cidade" />
               </SelectTrigger>
@@ -346,7 +347,7 @@ export default function EmpresaPage() {
                   <Input
                     placeholder="Buscar segmentos..."
                     onChange={handleInputChange}
-                    onKeyDown={(e) => e.stopPropagation()}
+                    onKeyDown={e => e.stopPropagation()}
                   />
                   <SelectSeparator />
                 </div>
@@ -358,7 +359,7 @@ export default function EmpresaPage() {
                     </span>
                   </SelectLabel>
                   {/* Exibe os segmentos armazenados */}
-                  {loadedSegments.map((item) => (
+                  {loadedSegments.map(item => (
                     <SelectItem
                       key={item.segmento_id}
                       value={item.segmento_id.toString()}
@@ -371,7 +372,7 @@ export default function EmpresaPage() {
                   variant="ghost"
                   size="sm"
                   className="w-full py-5"
-                  onClick={() => setPageSegmento((prev) => prev + 1)}
+                  onClick={() => setPageSegmento(prev => prev + 1)}
                   disabled={isDisable}
                 >
                   {isLoadingSegmento ? (
@@ -383,14 +384,14 @@ export default function EmpresaPage() {
               </SelectContent>
             </Select>
 
-            <Select onValueChange={(value) => handleFilterPorte(value)}>
+            <Select onValueChange={value => handleFilterPorte(value)}>
               <SelectTrigger className="w-[240px]">
                 <SelectValue placeholder="Selecione um porte" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
                   <SelectLabel>Porte da empresa</SelectLabel>
-                  {porte?.porte_empresas.map((porte) => (
+                  {porte?.porte_empresas.map(porte => (
                     <SelectItem
                       key={porte.porte_id}
                       value={porte.porte_id.toString()}
@@ -433,5 +434,5 @@ export default function EmpresaPage() {
         {isLoading && <DataTableSkeleton />}
       </div>
     </main>
-  )
+  );
 }

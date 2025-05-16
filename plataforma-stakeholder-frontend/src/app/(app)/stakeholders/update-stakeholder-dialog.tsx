@@ -1,7 +1,14 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogClose,
@@ -11,56 +18,50 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Controller, useForm } from 'react-hook-form'
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { getStakeholders } from '@/http/stakeholders/get-stakeholders';
+import { updateStakeholder } from '@/http/stakeholders/update-stakeholder';
+import { formatCpfCnpj } from '@/utils/format-cpf-cnpj';
 
-import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { formatCpfCnpj } from '@/utils/format-cpf-cnpj'
-import { useToast } from '@/hooks/use-toast'
-import { Loader2 } from 'lucide-react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getStakeholders } from '@/http/stakeholders/get-stakeholders'
-import { useState } from 'react'
-import { Stakeholder } from './columns'
-import { StakeholderSkeletonDialog } from './stakeholder-skeleton-dialog'
-import { updateStakeholder } from '@/http/stakeholders/update-stakeholder'
-import { Separator } from '@/components/ui/separator'
+import { Stakeholder } from './columns';
+import { StakeholderSkeletonDialog } from './stakeholder-skeleton-dialog';
 
 const updateStakeholderFormSchema = z.object({
   camada_stakeholder: z.boolean().default(true),
   camada_advogados: z.boolean().default(false),
   stakeholder_advogado: z.boolean().default(false),
-})
+});
 
-type UpdateStakeholderFormSchema = z.infer<typeof updateStakeholderFormSchema>
+type UpdateStakeholderFormSchema = z.infer<typeof updateStakeholderFormSchema>;
 
 interface UpdateStakeholderDialogProps {
-  stakeholder: Stakeholder
+  stakeholder: Stakeholder;
 }
 
 export function UpdateStakeholderDialog({
   stakeholder,
 }: UpdateStakeholderDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
-  const { toast } = useToast()
-  const queryClient = useQueryClient()
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
     queryKey: ['stakeholders', stakeholder.document],
     queryFn: () => getStakeholders({ documento: stakeholder.document }),
     enabled: isOpen,
-  })
+  });
 
   const { mutateAsync: updateStakeholderFn } = useMutation({
     mutationFn: updateStakeholder,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stakeholders', 'consult'] })
+      queryClient.invalidateQueries({ queryKey: ['stakeholders', 'consult'] });
     },
-  })
+  });
 
   const {
     control,
@@ -76,7 +77,7 @@ export function UpdateStakeholderDialog({
       camada_advogados: false,
       stakeholder_advogado: false,
     },
-  })
+  });
 
   async function handleUpdateStakeholder(data: UpdateStakeholderFormSchema) {
     try {
@@ -86,24 +87,24 @@ export function UpdateStakeholderDialog({
         camada_stakeholder: data.camada_stakeholder,
         camada_advogados: data.camada_advogados,
         stakeholder_advogado: data.stakeholder_advogado,
-      })
+      });
 
-      reset()
+      reset();
 
-      setIsOpen(false)
+      setIsOpen(false);
 
       toast({
         title: 'Sucesso!',
         description: 'As informações sobre o escritório foram atualizadas.',
-      })
+      });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       toast({
         variant: 'destructive',
         title: 'Erro ao atualizar...',
         description:
           'Não foi possível atualizar as informações sobre o escritório.',
-      })
+      });
     }
   }
 
@@ -116,7 +117,7 @@ export function UpdateStakeholderDialog({
       </DialogTrigger>
 
       {data &&
-        data.stakeholders.map((stakeholder) => {
+        data.stakeholders.map(stakeholder => {
           return (
             <DialogContent key={stakeholder.document}>
               <DialogHeader>
@@ -165,7 +166,7 @@ export function UpdateStakeholderDialog({
                             </span>
                           </div>
                         </div>
-                      )
+                      );
                     }}
                   />
 
@@ -192,7 +193,7 @@ export function UpdateStakeholderDialog({
                             </span>
                           </div>
                         </div>
-                      )
+                      );
                     }}
                   />
 
@@ -219,7 +220,7 @@ export function UpdateStakeholderDialog({
                             </span>
                           </div>
                         </div>
-                      )
+                      );
                     }}
                   />
                 </div>
@@ -250,8 +251,8 @@ export function UpdateStakeholderDialog({
 
               {isLoading && <StakeholderSkeletonDialog />}
             </DialogContent>
-          )
+          );
         })}
     </Dialog>
-  )
+  );
 }

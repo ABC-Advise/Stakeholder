@@ -1,6 +1,10 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -9,51 +13,49 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { useToast } from '@/hooks/use-toast'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
-import { Office } from './columns'
-import { deleteOffice } from '@/http/offices/delete-office'
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { deleteOffice } from '@/http/offices/delete-office';
+
+import { Office } from './columns';
 
 interface DeleteOfficeDialogProps {
-  office: Office
+  office: Office;
 }
 
 export function DeleteOfficeDialog({ office }: DeleteOfficeDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const { mutateAsync: deleteOfficeFn, isPending } = useMutation({
     mutationFn: deleteOffice,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['offices'] })
+      queryClient.invalidateQueries({ queryKey: ['offices'] });
     },
-  })
+  });
 
   async function handleDeleteOffice(id: number) {
     try {
       await deleteOfficeFn({
         escritorio_id: office.escritorio_id,
-      })
+      });
 
-      setIsOpen(false)
+      setIsOpen(false);
 
       toast({
         title: 'Escritório removido!',
         description: 'Você removeu o escritório com sucesso.',
-      })
+      });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       toast({
         variant: 'destructive',
         title: 'Erro ao tentar remover...',
         description: 'Não foi possível remover o escritório desejado.',
-      })
+      });
     }
   }
 
@@ -107,5 +109,5 @@ export function DeleteOfficeDialog({ office }: DeleteOfficeDialogProps) {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

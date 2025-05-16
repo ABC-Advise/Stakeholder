@@ -1,6 +1,21 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  Check,
+  ChevronDown,
+  CircleDashed,
+  Loader2,
+  Search,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+
+import { Button } from '@/components/ui/button';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Dialog,
   DialogContent,
@@ -8,50 +23,42 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
+import { Consulta } from '@/http/consult/get-all-consult';
+import { getLogsById, Log as LogProps } from '@/http/logs/get-logs-by-id';
+import { cn } from '@/lib/utils';
 
-import { useToast } from '@/hooks/use-toast'
-import { Check, ChevronDown, CircleDashed, Loader2, Search } from 'lucide-react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Log } from './_components/log'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
-import { Consulta } from '@/http/consult/get-all-consult'
-import { cn } from '@/lib/utils'
-import { getLogsById, Log as LogProps } from '@/http/logs/get-logs-by-id'
+import { Log } from './_components/log';
 
 export type ConsultDetailsDialogProps = {
-  data: Consulta
-}
+  data: Consulta;
+};
 
 export function ConsultDetailsDialog({ data }: ConsultDetailsDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
-  const [page, setPage] = useState<number>(1)
-  const [size, setSize] = useState<number>(20)
+  const [page, setPage] = useState<number>(1);
+  const [size, setSize] = useState<number>(20);
 
-  const [logs, setLogs] = useState<LogProps[]>([])
+  const [logs, setLogs] = useState<LogProps[]>([]);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ['logs', data.consulta_id],
     queryFn: () => getLogsById({ consulta_id: data.consulta_id, page, size }),
     enabled: isOpen,
-  })
+  });
 
   useEffect(() => {
     if (result && result.logs) {
       if (page === 1) {
-        setLogs(result.logs)
+        setLogs(result.logs);
       } else {
-        setLogs((prev) => [...prev, ...result.logs])
+        setLogs(prev => [...prev, ...result.logs]);
       }
     }
-  }, [result, page])
+  }, [result, page]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -59,7 +66,7 @@ export function ConsultDetailsDialog({ data }: ConsultDetailsDialogProps) {
         <Button
           variant="outline"
           className="size-9"
-          onClick={() => setIsOpen((prev) => !prev)}
+          onClick={() => setIsOpen(prev => !prev)}
         >
           <Search />
         </Button>
@@ -125,7 +132,7 @@ export function ConsultDetailsDialog({ data }: ConsultDetailsDialogProps) {
                 <div
                   className={cn(
                     'flex size-5 items-center justify-center rounded-full',
-                    data.status === 'Finalizado' && 'bg-emerald-500',
+                    data.status === 'Finalizado' && 'bg-emerald-500'
                   )}
                 >
                   {data.status === 'Finalizado' ? (
@@ -155,7 +162,7 @@ export function ConsultDetailsDialog({ data }: ConsultDetailsDialogProps) {
                     <button
                       type="button"
                       className="mt-auto flex h-8 shrink-0 items-center justify-center gap-2 border-t bg-muted hover:opacity-80"
-                      onClick={() => setPage((prev) => prev + 1)}
+                      onClick={() => setPage(prev => prev + 1)}
                       disabled={isLoading}
                     >
                       {isLoading && <Loader2 className="size-4 animate-spin" />}
@@ -175,5 +182,5 @@ export function ConsultDetailsDialog({ data }: ConsultDetailsDialogProps) {
         )}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

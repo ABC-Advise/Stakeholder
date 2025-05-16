@@ -1,7 +1,15 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { SelectValue } from '@radix-ui/react-select';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogClose,
@@ -11,24 +19,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Controller, useForm } from 'react-hook-form'
-
-import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { formatCpfCnpj } from '@/utils/format-cpf-cnpj'
-import { useToast } from '@/hooks/use-toast'
-import { Loader2 } from 'lucide-react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getStakeholders } from '@/http/stakeholders/get-stakeholders'
-import { useState } from 'react'
-import { Stakeholder } from './columns'
-import { StakeholderSkeletonDialog } from './stakeholder-skeleton-dialog'
-import { updateStakeholder } from '@/http/stakeholders/update-stakeholder'
-import { updateEmpresa } from '@/http/empresa/update-empresa'
-import { updatePessoa } from '@/http/pessoa/update-pessoa'
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -36,15 +29,23 @@ import {
   SelectItem,
   SelectLabel,
   SelectTrigger,
-} from '@/components/ui/select'
-import { SelectValue } from '@radix-ui/react-select'
-import { getProjetos } from '@/http/projetos/get-projetos'
+} from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { updateEmpresa } from '@/http/empresa/update-empresa';
+import { updatePessoa } from '@/http/pessoa/update-pessoa';
+import { getProjetos } from '@/http/projetos/get-projetos';
+import { getStakeholders } from '@/http/stakeholders/get-stakeholders';
+import { updateStakeholder } from '@/http/stakeholders/update-stakeholder';
+import { formatCpfCnpj } from '@/utils/format-cpf-cnpj';
 
-const cpfPattern = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/
-const cnpjPattern = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/
+import { Stakeholder } from './columns';
+import { StakeholderSkeletonDialog } from './stakeholder-skeleton-dialog';
+
+const cpfPattern = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
+const cnpjPattern = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/;
 
 function removeNonNumeric(value: string) {
-  return value.replace(/\D/g, '') // Remove todos os caracteres não numéricos
+  return value.replace(/\D/g, ''); // Remove todos os caracteres não numéricos
 }
 
 const editStakeholderFormSchema = z
@@ -56,43 +57,43 @@ const editStakeholderFormSchema = z
     projeto: z.string().optional(),
   })
   .refine(
-    (data) => {
+    data => {
       if (data.prospeccao && !data.stakeholder) {
-        return false
+        return false;
       }
-      return true
+      return true;
     },
     {
       message: 'O cliente em prospecção deve ser um stakeholder.',
       path: ['stakeholder'],
-    },
-  )
+    }
+  );
 
-type EditStakeholderFormSchema = z.infer<typeof editStakeholderFormSchema>
+type EditStakeholderFormSchema = z.infer<typeof editStakeholderFormSchema>;
 
 interface EditStakeholderDialogProps {
-  stakeholder: Stakeholder
+  stakeholder: Stakeholder;
 }
 
 export function EditStakeholderDialog({
   stakeholder,
 }: EditStakeholderDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
-  const { toast } = useToast()
-  const queryClient = useQueryClient()
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
     queryKey: ['stakeholders', stakeholder.document],
     queryFn: () => getStakeholders({ documento: stakeholder.document }),
     enabled: isOpen,
-  })
+  });
 
   const { data: projetos, isLoading: isLoadingProjetos } = useQuery({
     queryKey: ['projetos'],
     queryFn: () => getProjetos({}),
     enabled: isOpen,
-  })
+  });
 
   const {
     control,
@@ -109,7 +110,7 @@ export function EditStakeholderDialog({
       stakeholder: stakeholder.stakeholder ?? false,
       associado: stakeholder.associado ?? false,
     },
-  })
+  });
 
   async function handleEditStakeholder(data: EditStakeholderFormSchema) {
     try {
@@ -120,7 +121,7 @@ export function EditStakeholderDialog({
           stakeholder: data.stakeholder,
           em_prospecao: data.prospeccao,
           projeto_id: data.projeto ? Number(data.projeto) : undefined,
-        })
+        });
       } else {
         await updatePessoa({
           pessoa_id: stakeholder.entidade_id,
@@ -129,30 +130,30 @@ export function EditStakeholderDialog({
           em_prospecao: data.prospeccao,
           associado: data.associado ?? false,
           projeto_id: data.projeto ? Number(data.projeto) : undefined,
-        })
+        });
       }
 
-      reset()
+      reset();
 
-      setIsOpen(false)
+      setIsOpen(false);
 
       toast({
         title: 'Sucesso!',
         description: 'As informações sobre o escritório foram atualizadas.',
-      })
+      });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       toast({
         variant: 'destructive',
         title: 'Erro ao atualizar...',
         description:
           'Não foi possível atualizar as informações sobre o escritório.',
-      })
+      });
     }
   }
 
-  const prospeccao = watch('prospeccao')
-  const stakeholderCheckbox = watch('stakeholder')
+  const prospeccao = watch('prospeccao');
+  const stakeholderCheckbox = watch('stakeholder');
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -171,7 +172,7 @@ export function EditStakeholderDialog({
         </DialogHeader>
 
         {data &&
-          data.stakeholders.map((stakeholder) => {
+          data.stakeholders.map(stakeholder => {
             return (
               <form
                 onSubmit={handleSubmit(handleEditStakeholder)}
@@ -189,9 +190,9 @@ export function EditStakeholderDialog({
                       maxLength={15}
                       disabled
                       {...register('documento')}
-                      onChange={(e) => {
-                        const formattedValue = formatCpfCnpj(e.target.value)
-                        e.target.value = formattedValue
+                      onChange={e => {
+                        const formattedValue = formatCpfCnpj(e.target.value);
+                        e.target.value = formattedValue;
                       }}
                     />
                   </div>
@@ -213,7 +214,7 @@ export function EditStakeholderDialog({
                           <SelectContent>
                             <SelectGroup>
                               <SelectLabel>Projetos</SelectLabel>
-                              {projetos?.projetos.map((projeto) => (
+                              {projetos?.projetos.map(projeto => (
                                 <SelectItem
                                   key={projeto.projeto_id}
                                   value={projeto.projeto_id.toString()}
@@ -241,10 +242,10 @@ export function EditStakeholderDialog({
                         <div className="flex items-start space-x-2">
                           <Checkbox
                             checked={field.value}
-                            onCheckedChange={(checked) => {
+                            onCheckedChange={checked => {
                               // Impede desmarcar se prospecção estiver marcada
-                              if (prospeccao && !checked) return
-                              field.onChange(checked)
+                              if (prospeccao && !checked) return;
+                              field.onChange(checked);
                             }}
                           />
                           <div className="flex flex-col gap-1">
@@ -265,7 +266,7 @@ export function EditStakeholderDialog({
                             )}
                           </div>
                         </div>
-                      )
+                      );
                     }}
                   />
 
@@ -278,8 +279,8 @@ export function EditStakeholderDialog({
                           <Checkbox
                             checked={field.value}
                             disabled={!stakeholderCheckbox} // Desabilita se stakeholder for falso
-                            onCheckedChange={(checked) => {
-                              field.onChange(checked)
+                            onCheckedChange={checked => {
+                              field.onChange(checked);
                             }}
                           />
                           <div className="flex flex-col gap-1">
@@ -295,7 +296,7 @@ export function EditStakeholderDialog({
                             </span>
                           </div>
                         </div>
-                      )
+                      );
                     }}
                   />
 
@@ -323,7 +324,7 @@ export function EditStakeholderDialog({
                             </span>
                           </div>
                         </div>
-                      )
+                      );
                     }}
                   />
                 </div>
@@ -351,11 +352,11 @@ export function EditStakeholderDialog({
                   </Button>
                 </DialogFooter>
               </form>
-            )
+            );
           })}
 
         {isLoading && <StakeholderSkeletonDialog />}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

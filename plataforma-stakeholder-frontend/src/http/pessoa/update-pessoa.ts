@@ -1,16 +1,16 @@
-import { api } from '../api-client'
+import { api } from '../api-client';
 
 interface UpdatePessoaRequest {
-  pessoa_id: number
-  firstname?: string
-  lastname?: string
-  cpf: string
-  linkedin?: string
-  instagram?: string
-  stakeholder: boolean
-  em_prospecao: boolean
-  associado?: boolean
-  projeto_id?: number
+  pessoa_id: number;
+  firstname?: string;
+  lastname?: string;
+  cpf: string;
+  linkedin?: string;
+  instagram?: string;
+  stakeholder: boolean;
+  em_prospecao: boolean;
+  associado?: boolean;
+  projeto_id?: number;
 }
 
 export async function updatePessoa({
@@ -36,7 +36,7 @@ export async function updatePessoa({
     em_prospecao,
     associado,
     projeto_id,
-  })
+  });
 
-  return response.data
+  return response.data;
 }

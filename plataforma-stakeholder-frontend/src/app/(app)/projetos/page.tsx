@@ -1,39 +1,39 @@
-'use client'
+'use client';
 
-import { useQuery } from '@tanstack/react-query'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { z } from 'zod'
-import { DataTable } from './data-table'
-import { columns } from './columns'
-import { Pagination } from '@/components/pagination'
-import { DataTableSkeleton } from './data-table-skeleton'
-import { ChangeEvent, FormEvent, useState } from 'react'
+import { useQuery } from '@tanstack/react-query';
+import { ChevronDown, FilterX, Plus, Search } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { ChangeEvent, FormEvent, useState } from 'react';
+import { z } from 'zod';
 
-import { Input } from '@/components/ui/input'
-import { ChevronDown, FilterX, Plus, Search } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Pagination } from '@/components/pagination';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { getProjetos } from '@/http/projetos/get-projetos';
 
-import { getProjetos } from '@/http/projetos/get-projetos'
-import { CreateProjetoDialog } from './create-projeto-dialog'
+import { columns } from './columns';
+import { CreateProjetoDialog } from './create-projeto-dialog';
+import { DataTable } from './data-table';
+import { DataTableSkeleton } from './data-table-skeleton';
 
 export default function ProjetoPage() {
-  const [isOpenCreateStakeholder, setIsOpenCreateStakeholder] = useState(false)
-  const searchParams = useSearchParams()
+  const [isOpenCreateStakeholder, setIsOpenCreateStakeholder] = useState(false);
+  const searchParams = useSearchParams();
 
-  const [searchType, setSearchType] = useState('cpf')
+  const [searchType, setSearchType] = useState('cpf');
 
-  const pathname = usePathname()
-  const router = useRouter()
+  const pathname = usePathname();
+  const router = useRouter();
 
   const page = z.coerce
     .number()
-    .transform((page) => page)
-    .parse(searchParams.get('page') ?? '1')
+    .transform(page => page)
+    .parse(searchParams.get('page') ?? '1');
 
   const size = z.coerce
     .number()
-    .transform((size) => size)
-    .parse(searchParams.get('size') ?? '10')
+    .transform(size => size)
+    .parse(searchParams.get('size') ?? '10');
 
   const { data, isLoading } = useQuery({
     queryKey: ['projetos', page, size],
@@ -42,18 +42,18 @@ export default function ProjetoPage() {
         page,
         size,
       }),
-  })
+  });
 
   function handlePaginate(page: number) {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    params.set('page', (page + 1).toString())
+    params.set('page', (page + 1).toString());
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   function handleSelectChange(e: ChangeEvent<HTMLSelectElement>) {
-    setSearchType(e.target.value)
+    setSearchType(e.target.value);
   }
 
   // function handleFilter(e: FormEvent<HTMLFormElement>) {
@@ -84,11 +84,11 @@ export default function ProjetoPage() {
   // }
 
   function handleClearFilters() {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
-    params.delete('page')
-    params.delete('size')
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    params.delete('page');
+    params.delete('size');
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   return (
@@ -139,5 +139,5 @@ export default function ProjetoPage() {
         {isLoading && <DataTableSkeleton />}
       </div>
     </main>
-  )
+  );
 }

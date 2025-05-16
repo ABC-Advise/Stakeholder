@@ -1,6 +1,10 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -9,69 +13,67 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { useToast } from '@/hooks/use-toast'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
-import { Stakeholder } from './columns'
-import { deletePessoa } from '@/http/pessoa/delete-pessoa'
-import { deleteEmpresa } from '@/http/empresa/delete-empresa'
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { deleteEmpresa } from '@/http/empresa/delete-empresa';
+import { deletePessoa } from '@/http/pessoa/delete-pessoa';
+
+import { Stakeholder } from './columns';
 
 interface DeleteStakeholderDialogProps {
-  stakeholder: Stakeholder
+  stakeholder: Stakeholder;
 }
 
 export function DeleteStakeholderDialog({
   stakeholder,
 }: DeleteStakeholderDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const { mutateAsync: deleteEmpresaFn, isPending: isPendingEmpresa } =
     useMutation({
       mutationFn: deleteEmpresa,
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['stakeholders'] })
+        queryClient.invalidateQueries({ queryKey: ['stakeholders'] });
       },
-    })
+    });
 
   const { mutateAsync: deletePessoaFn, isPending: isPendingPessoa } =
     useMutation({
       mutationFn: deletePessoa,
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['stakeholders'] })
+        queryClient.invalidateQueries({ queryKey: ['stakeholders'] });
       },
-    })
+    });
 
   async function handleDeleteStakeholder(id: number) {
     try {
       if (stakeholder.is_CNPJ) {
         await deleteEmpresaFn({
           empresa_id: id,
-        })
+        });
       } else {
         await deletePessoaFn({
           pessoa_id: id,
-        })
+        });
       }
 
-      setIsOpen(false)
+      setIsOpen(false);
 
       toast({
         title: 'Stakeholder removido!',
         description: 'Você removeu o stakeholder com sucesso.',
-      })
+      });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       toast({
         variant: 'destructive',
         title: 'Erro ao tentar remover...',
         description: 'Não foi possível remover o stakeholder desejado.',
-      })
+      });
     }
   }
 
@@ -127,5 +129,5 @@ export function DeleteStakeholderDialog({
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

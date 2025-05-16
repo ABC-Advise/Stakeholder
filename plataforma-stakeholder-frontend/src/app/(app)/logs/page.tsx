@@ -1,47 +1,48 @@
-'use client'
+'use client';
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { z } from 'zod'
+import { useQuery } from '@tanstack/react-query';
+import { ArrowDownUp, FilterX, RefreshCw, X } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { DateRange } from 'react-day-picker';
+import { z } from 'zod';
 
-import { ArrowDownUp, FilterX, RefreshCw, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { DataTable } from './data-table'
-import { columns } from './columns'
-import { Pagination } from '@/components/pagination'
-import { DateRangePicker } from '@/components/date-picker'
-import { useState } from 'react'
-import { DateRange } from 'react-day-picker'
+import { DateRangePicker } from '@/components/date-picker';
+import { Pagination } from '@/components/pagination';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { useQuery } from '@tanstack/react-query'
-import { getAllConsult } from '@/http/consult/get-all-consult'
-import { DataTableSkeleton } from './data-table-skeleton'
+} from '@/components/ui/select';
+import { getAllConsult } from '@/http/consult/get-all-consult';
+
+import { columns } from './columns';
+import { DataTable } from './data-table';
+import { DataTableSkeleton } from './data-table-skeleton';
 
 export default function LawyersPage() {
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
 
-  const pathname = usePathname()
-  const router = useRouter()
+  const pathname = usePathname();
+  const router = useRouter();
 
-  const [oldFirst, setOldFirst] = useState<boolean | null>(null)
-  const [dateRange, setDateRange] = useState<DateRange | undefined>()
+  const [oldFirst, setOldFirst] = useState<boolean | null>(null);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
-  const [isRefreshing, setIsRefreshing] = useState(false) // estado de loading para refresh da tabela
+  const [isRefreshing, setIsRefreshing] = useState(false); // estado de loading para refresh da tabela
 
   const page = z.coerce
     .number()
-    .transform((page) => page)
-    .parse(searchParams.get('page') ?? '1')
+    .transform(page => page)
+    .parse(searchParams.get('page') ?? '1');
 
   const size = z.coerce
     .number()
-    .transform((size) => size)
-    .parse(searchParams.get('size') ?? '10')
+    .transform(size => size)
+    .parse(searchParams.get('size') ?? '10');
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['consult', page, size, dateRange, oldFirst],
@@ -55,34 +56,34 @@ export default function LawyersPage() {
       }),
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchInterval: 1000 * 60 * 15, // 15 minutes
-  })
+  });
 
   function handlePaginate(page: number) {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    params.set('page', (page + 1).toString())
+    params.set('page', (page + 1).toString());
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   function handleClearFilters() {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    params.delete('page')
-    params.delete('size')
+    params.delete('page');
+    params.delete('size');
 
-    setDateRange(undefined)
-    setOldFirst(null)
+    setDateRange(undefined);
+    setOldFirst(null);
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   const handleRefresh = async () => {
-    setIsRefreshing(true)
-    await new Promise((resolve) => setTimeout(resolve, 500)) // delay de 500ms para animação de loading
-    await refetch()
-    setIsRefreshing(false)
-  }
+    setIsRefreshing(true);
+    await new Promise(resolve => setTimeout(resolve, 500)); // delay de 500ms para animação de loading
+    await refetch();
+    setIsRefreshing(false);
+  };
 
   return (
     <main className="relative mx-auto min-h-screen w-full max-w-[1200px] pb-16 pt-28">
@@ -150,5 +151,5 @@ export default function LawyersPage() {
         {isLoading && <DataTableSkeleton />}
       </div>
     </main>
-  )
+  );
 }

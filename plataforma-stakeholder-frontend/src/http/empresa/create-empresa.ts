@@ -1,29 +1,29 @@
-import { api } from '../api-client'
+import { api } from '../api-client';
 
 interface CreateEmpresaRequest {
-  cnpj: string
-  razao_social: string
-  nome_fantasia: string
-  porte_id: number
-  segmento_id: number
-  linkedin?: string
-  instagram?: string
-  stakeholder: boolean
-  em_prospecao: boolean
-  projeto_id?: number
+  cnpj: string;
+  razao_social: string;
+  nome_fantasia: string;
+  porte_id: number;
+  segmento_id: number;
+  linkedin?: string;
+  instagram?: string;
+  stakeholder: boolean;
+  em_prospecao: boolean;
+  projeto_id?: number;
 }
 
 interface CreateEmpresaResponse {
-  cnpj: string
-  razao_social: string
-  nome_fantasia: string
-  porte_id: number
-  segmento_id: number
-  linkedin: string
-  instagram: string
-  stakeholder: boolean
-  em_prospecao: boolean
-  projeto_id: number
+  cnpj: string;
+  razao_social: string;
+  nome_fantasia: string;
+  porte_id: number;
+  segmento_id: number;
+  linkedin: string;
+  instagram: string;
+  stakeholder: boolean;
+  em_prospecao: boolean;
+  projeto_id: number;
 }
 
 export async function createEmpresa({
@@ -49,7 +49,7 @@ export async function createEmpresa({
     stakeholder,
     em_prospecao,
     projeto_id,
-  })
+  });
 
-  return response.data
+  return response.data;
 }

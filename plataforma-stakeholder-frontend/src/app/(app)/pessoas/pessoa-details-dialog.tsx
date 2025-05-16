@@ -1,6 +1,19 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
+import { ChevronDown } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { z, ZodType } from 'zod';
+
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Dialog,
   DialogClose,
@@ -10,25 +23,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
-import { getPessoas } from '@/http/pessoa/get-pessoas'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
-import { ChevronDown } from 'lucide-react'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Controller, useForm } from 'react-hook-form'
-import { formatCpfCnpj } from '@/utils/format-cpf-cnpj'
-import { z, ZodType } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Pessoa } from './columns'
-import { PessoaSkeletonDialog } from './pessoa-skeleton-dialog'
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -37,11 +34,16 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { getProjetos } from '@/http/projetos/get-projetos'
+} from '@/components/ui/select';
+import { getPessoas } from '@/http/pessoa/get-pessoas';
+import { getProjetos } from '@/http/projetos/get-projetos';
+import { formatCpfCnpj } from '@/utils/format-cpf-cnpj';
+
+import { Pessoa } from './columns';
+import { PessoaSkeletonDialog } from './pessoa-skeleton-dialog';
 
 interface PessoaDetailsDialogProps {
-  pessoa: Pessoa
+  pessoa: Pessoa;
 }
 
 const updateFormSchema = z.object({
@@ -57,24 +59,24 @@ const updateFormSchema = z.object({
   instagram: z.string().optional(),
   linkedin: z.string().optional(),
   projeto: z.string().nonempty('Selecione um projeto válido.'),
-})
+});
 
-type UpdateFormSchema = z.infer<typeof updateFormSchema>
+type UpdateFormSchema = z.infer<typeof updateFormSchema>;
 
 export function PessoaDetailsDialog({ pessoa }: PessoaDetailsDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['pessoas', pessoa.pessoa_id],
     queryFn: () => getPessoas({ pessoa_id: pessoa.pessoa_id }),
     enabled: isOpen,
-  })
+  });
 
   const { data: projetos, isLoading: isLoadingProjetos } = useQuery({
     queryKey: ['projetos'],
     queryFn: () => getProjetos({}),
     enabled: isOpen,
-  })
+  });
 
   const { control, register } = useForm<UpdateFormSchema>({
     resolver: zodResolver(updateFormSchema as unknown as ZodType<any>),
@@ -88,7 +90,7 @@ export function PessoaDetailsDialog({ pessoa }: PessoaDetailsDialogProps) {
       linkedin: pessoa.linkedin ?? '',
       projeto: pessoa.projeto_id.toString() ?? '',
     },
-  })
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -100,7 +102,7 @@ export function PessoaDetailsDialog({ pessoa }: PessoaDetailsDialogProps) {
 
       <DialogContent>
         {data &&
-          data.pessoas.map((pessoa) => {
+          data.pessoas.map(pessoa => {
             return (
               <form key={pessoa.pessoa_id}>
                 <DialogHeader>
@@ -127,9 +129,9 @@ export function PessoaDetailsDialog({ pessoa }: PessoaDetailsDialogProps) {
                       maxLength={15}
                       disabled
                       {...register('cpf')}
-                      onChange={(e) => {
-                        const formattedValue = formatCpfCnpj(e.target.value)
-                        e.target.value = formattedValue
+                      onChange={e => {
+                        const formattedValue = formatCpfCnpj(e.target.value);
+                        e.target.value = formattedValue;
                       }}
                     />
                   </div>
@@ -153,7 +155,7 @@ export function PessoaDetailsDialog({ pessoa }: PessoaDetailsDialogProps) {
                           <SelectContent>
                             <SelectGroup>
                               <SelectLabel>Projetos</SelectLabel>
-                              {projetos?.projetos.map((projeto) => (
+                              {projetos?.projetos.map(projeto => (
                                 <SelectItem
                                   key={projeto.projeto_id}
                                   value={projeto.projeto_id.toString()}
@@ -192,7 +194,7 @@ export function PessoaDetailsDialog({ pessoa }: PessoaDetailsDialogProps) {
                             </span>
                           </div>
                         </div>
-                      )
+                      );
                     }}
                   />
 
@@ -220,7 +222,7 @@ export function PessoaDetailsDialog({ pessoa }: PessoaDetailsDialogProps) {
                             </span>
                           </div>
                         </div>
-                      )
+                      );
                     }}
                   />
 
@@ -254,11 +256,11 @@ export function PessoaDetailsDialog({ pessoa }: PessoaDetailsDialogProps) {
                   </DialogClose>
                 </DialogFooter>
               </form>
-            )
+            );
           })}
 
         {isLoading && <PessoaSkeletonDialog />}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

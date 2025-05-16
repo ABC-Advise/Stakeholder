@@ -1,11 +1,11 @@
-import { api } from '../api-client'
+import { api } from '../api-client';
 
 interface UpdateProjetoRequest {
-  projeto_id: number
-  nome: string
-  descricao: string
-  data_inicio: string
-  data_fim: string
+  projeto_id: number;
+  nome: string;
+  descricao: string;
+  data_inicio: string;
+  data_fim: string;
 }
 
 export async function updateProjeto({
@@ -21,7 +21,7 @@ export async function updateProjeto({
     descricao,
     data_inicio,
     data_fim,
-  })
+  });
 
-  return response.data
+  return response.data;
 }

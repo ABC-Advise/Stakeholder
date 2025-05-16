@@ -1,16 +1,17 @@
-'use client'
+'use client';
 
 import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Office } from './columns'
-import { Skeleton } from '@/components/ui/skeleton'
+} from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
+
+import { Office } from './columns';
 
 interface EditOfficeDialogProps {
-  office: Office
+  office: Office;
 }
 
 export function OfficeSkeletonDialog() {
@@ -37,5 +38,5 @@ export function OfficeSkeletonDialog() {
         <Skeleton className="h-10 w-full" />
       </DialogFooter>
     </div>
-  )
+  );
 }

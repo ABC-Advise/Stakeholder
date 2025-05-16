@@ -1,6 +1,10 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -9,51 +13,49 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { useToast } from '@/hooks/use-toast'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
-import { Lawyer } from './columns'
-import { deleteLawyer } from '@/http/lawyers/delete-lawyer'
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { deleteLawyer } from '@/http/lawyers/delete-lawyer';
+
+import { Lawyer } from './columns';
 
 interface DeleteLawyerDialogProps {
-  lawyer: Lawyer
+  lawyer: Lawyer;
 }
 
 export function DeleteLawyerDialog({ lawyer }: DeleteLawyerDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const { mutateAsync: deleteLawyerFn, isPending } = useMutation({
     mutationFn: deleteLawyer,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['lawyers'] })
+      queryClient.invalidateQueries({ queryKey: ['lawyers'] });
     },
-  })
+  });
 
   async function handleDeleteLawyer(id: number) {
     try {
       await deleteLawyerFn({
         advogado_id: lawyer.advogado_id,
-      })
+      });
 
-      setIsOpen(false)
+      setIsOpen(false);
 
       toast({
         title: 'Advogado removido!',
         description: 'Você removeu o advogado com sucesso.',
-      })
+      });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       toast({
         variant: 'destructive',
         title: 'Erro ao tentar remover...',
         description: 'Não foi possível remover o advogado desejado.',
-      })
+      });
     }
   }
 
@@ -109,5 +111,5 @@ export function DeleteLawyerDialog({ lawyer }: DeleteLawyerDialogProps) {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

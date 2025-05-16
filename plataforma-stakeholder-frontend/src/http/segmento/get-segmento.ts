@@ -1,24 +1,24 @@
-import { api } from '../api-client'
+import { api } from '../api-client';
 
 interface GetSegmentoResponseQuery {
-  segmento_id?: number | null
-  page?: number | null
-  size?: number | null
-  descricao?: string | null
+  segmento_id?: number | null;
+  page?: number | null;
+  size?: number | null;
+  descricao?: string | null;
 }
 
 export interface GetSegmentoResponse {
   segmento_empresas: {
-    segmento_id: number
-    cnae: string
-    descricao: string
-  }[]
+    segmento_id: number;
+    cnae: string;
+    descricao: string;
+  }[];
   meta: {
-    total: number
-    page: number
-    size: number
-    pages: number
-  }
+    total: number;
+    page: number;
+    size: number;
+    pages: number;
+  };
 }
 
 export async function getSegmento({
@@ -34,10 +34,10 @@ export async function getSegmento({
       size,
       descricao,
     },
-  })
+  });
 
-  console.log(descricao)
-  console.log(response.data)
+  console.log(descricao);
+  console.log(response.data);
 
-  return response.data
+  return response.data;
 }

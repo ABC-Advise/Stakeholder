@@ -1,27 +1,27 @@
-'use client'
+'use client';
 
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef } from '@tanstack/react-table';
+import { MoreHorizontal } from 'lucide-react';
 
-import { MoreHorizontal } from 'lucide-react'
-
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Checkbox } from '@/components/ui/checkbox'
-import { EditProjetoDialog } from './edit-projeto-dialog'
-import { ProjetoDetailsDialog } from './details-projeto-dialog'
+} from '@/components/ui/dropdown-menu';
+
+import { ProjetoDetailsDialog } from './details-projeto-dialog';
+import { EditProjetoDialog } from './edit-projeto-dialog';
 
 export type Projeto = {
-  projeto_id: number
-  nome: string
-  descricao: string
-  data_inicio: string
-  data_fim: string
-}
+  projeto_id: number;
+  nome: string;
+  descricao: string;
+  data_inicio: string;
+  data_fim: string;
+};
 
 export const columns: ColumnDef<Projeto>[] = [
   {
@@ -58,7 +58,7 @@ export const columns: ColumnDef<Projeto>[] = [
     id: 'actions',
     enableHiding: false,
     cell: ({ row }) => {
-      const projeto = row.original
+      const projeto = row.original;
 
       return (
         <DropdownMenu>
@@ -78,7 +78,7 @@ export const columns: ColumnDef<Projeto>[] = [
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
   },
-]
+];

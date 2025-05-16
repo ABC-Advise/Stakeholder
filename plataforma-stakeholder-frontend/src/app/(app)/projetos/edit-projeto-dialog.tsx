@@ -1,6 +1,13 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z, ZodType } from 'zod';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -10,51 +17,46 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useToast } from '@/hooks/use-toast'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { z, ZodType } from 'zod'
-import { Projeto } from './columns'
-import { removeNonNumeric } from '@/utils/remove-format'
-import { ProjetoSkeletonDialog } from './projeto-skeleton-dialog'
-import { getProjetos } from '@/http/projetos/get-projetos'
-import { updateProjeto } from '@/http/projetos/update-projeto'
-import { Textarea } from '@/components/ui/textarea'
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { getProjetos } from '@/http/projetos/get-projetos';
+import { updateProjeto } from '@/http/projetos/update-projeto';
+import { removeNonNumeric } from '@/utils/remove-format';
+
+import { Projeto } from './columns';
+import { ProjetoSkeletonDialog } from './projeto-skeleton-dialog';
 
 const updateFormSchema = z.object({
   nome: z.string(),
   descricao: z.string(),
   data_inicio: z.string(),
   data_fim: z.string(),
-})
+});
 
-type UpdateFormSchema = z.infer<typeof updateFormSchema>
+type UpdateFormSchema = z.infer<typeof updateFormSchema>;
 
 interface EditProjetoDialogProps {
-  projeto: Projeto
+  projeto: Projeto;
 }
 
 export function EditProjetoDialog({ projeto }: EditProjetoDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['projetos', projeto.projeto_id],
     queryFn: () => getProjetos({ projeto_id: projeto.projeto_id }),
     enabled: isOpen,
-  })
+  });
 
   const {
     control,
@@ -70,18 +72,18 @@ export function EditProjetoDialog({ projeto }: EditProjetoDialogProps) {
       data_inicio: projeto.data_inicio ?? '',
       data_fim: projeto.data_fim ?? '',
     },
-  })
+  });
 
   const { mutateAsync: updateProjetoFn } = useMutation({
     mutationFn: updateProjeto,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projetos'] })
+      queryClient.invalidateQueries({ queryKey: ['projetos'] });
     },
-  })
+  });
 
   async function handleUpdateProjeto(data: UpdateFormSchema) {
     try {
-      console.log(data)
+      console.log(data);
 
       await updateProjetoFn({
         projeto_id: projeto.projeto_id,
@@ -89,23 +91,23 @@ export function EditProjetoDialog({ projeto }: EditProjetoDialogProps) {
         descricao: data.descricao,
         data_inicio: data.data_inicio,
         data_fim: data.data_fim,
-      })
+      });
 
-      reset()
+      reset();
 
-      setIsOpen(false)
+      setIsOpen(false);
 
       toast({
         title: 'Sucesso!',
         description: 'Projeto atualizado com sucesso!',
-      })
+      });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       toast({
         variant: 'destructive',
         title: 'Erro ao atualizar...',
         description: 'Ocorreu algum erro ao tentar atualizar!',
-      })
+      });
     }
   }
 
@@ -119,7 +121,7 @@ export function EditProjetoDialog({ projeto }: EditProjetoDialogProps) {
 
       <DialogContent>
         {data &&
-          data.projetos.map((projeto) => {
+          data.projetos.map(projeto => {
             return (
               <form
                 onSubmit={handleSubmit(handleUpdateProjeto)}
@@ -198,11 +200,11 @@ export function EditProjetoDialog({ projeto }: EditProjetoDialogProps) {
                   </Button>
                 </DialogFooter>
               </form>
-            )
+            );
           })}
 
         {isLoading && <ProjetoSkeletonDialog />}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

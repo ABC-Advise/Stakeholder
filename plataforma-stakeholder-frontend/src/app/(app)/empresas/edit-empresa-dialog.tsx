@@ -1,6 +1,19 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ChevronDown, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { z, ZodType } from 'zod';
+
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Dialog,
   DialogClose,
@@ -10,29 +23,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useToast } from '@/hooks/use-toast'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronDown, Loader2 } from 'lucide-react'
-import { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import { z, ZodType } from 'zod'
-import { Empresa } from './columns'
-import { getEmpresas } from '@/http/empresa/get-empresas'
-import { updateEmpresa } from '@/http/empresa/update-empresa'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
-import { Checkbox } from '@/components/ui/checkbox'
-import { formatCpfCnpj } from '@/utils/format-cpf-cnpj'
-import { EmpresaSkeletonDialog } from './empresa-skeleton-dialog'
-import { removeNonNumeric } from '@/utils/remove-format'
-import { getProjetos } from '@/http/projetos/get-projetos'
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -41,7 +34,16 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { getEmpresas } from '@/http/empresa/get-empresas';
+import { updateEmpresa } from '@/http/empresa/update-empresa';
+import { getProjetos } from '@/http/projetos/get-projetos';
+import { formatCpfCnpj } from '@/utils/format-cpf-cnpj';
+import { removeNonNumeric } from '@/utils/remove-format';
+
+import { Empresa } from './columns';
+import { EmpresaSkeletonDialog } from './empresa-skeleton-dialog';
 
 const updateFormSchema = z.object({
   nome_fantasia: z
@@ -56,32 +58,32 @@ const updateFormSchema = z.object({
   instagram: z.string().optional(),
   linkedin: z.string().optional(),
   projeto: z.string().nonempty('Selecione um projeto válido.'),
-})
+});
 
-type UpdateFormSchema = z.infer<typeof updateFormSchema>
+type UpdateFormSchema = z.infer<typeof updateFormSchema>;
 
 interface EditEmpresaDialogProps {
-  empresa: Empresa
+  empresa: Empresa;
 }
 
 export function EditEmpresaDialog({ empresa }: EditEmpresaDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
     queryKey: ['empresas', empresa.empresa_id],
     queryFn: () => getEmpresas({ empresa_id: empresa.empresa_id }),
     enabled: isOpen,
-  })
+  });
 
   const { data: projetos, isLoading: isLoadingProjetos } = useQuery({
     queryKey: ['projetos'],
     queryFn: () => getProjetos({}),
     enabled: isOpen,
-  })
+  });
 
   const {
     control,
@@ -101,14 +103,14 @@ export function EditEmpresaDialog({ empresa }: EditEmpresaDialogProps) {
       linkedin: empresa.linkedin,
       projeto: empresa.projeto_id,
     },
-  })
+  });
 
   const { mutateAsync: updateEmpresaFn } = useMutation({
     mutationFn: updateEmpresa,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['empresas'] })
+      queryClient.invalidateQueries({ queryKey: ['empresas'] });
     },
-  })
+  });
 
   async function handleUpdateEmpresa(data: UpdateFormSchema) {
     try {
@@ -122,24 +124,24 @@ export function EditEmpresaDialog({ empresa }: EditEmpresaDialogProps) {
         instagram: data.instagram,
         linkedin: data.linkedin,
         projeto_id: Number(data.projeto),
-      })
+      });
 
-      reset()
+      reset();
 
-      setIsOpen(false)
+      setIsOpen(false);
 
       toast({
         title: 'Sucesso!',
         description: 'As informações sobre o escritório foram atualizadas.',
-      })
+      });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       toast({
         variant: 'destructive',
         title: 'Erro ao atualizar...',
         description:
           'Não foi possível atualizar as informações sobre o escritório.',
-      })
+      });
     }
   }
 
@@ -153,7 +155,7 @@ export function EditEmpresaDialog({ empresa }: EditEmpresaDialogProps) {
 
       <DialogContent>
         {data &&
-          data.empresas.map((empresa) => {
+          data.empresas.map(empresa => {
             return (
               <form
                 onSubmit={handleSubmit(handleUpdateEmpresa)}
@@ -192,9 +194,9 @@ export function EditEmpresaDialog({ empresa }: EditEmpresaDialogProps) {
                       minLength={11}
                       maxLength={15}
                       {...register('cnpj')}
-                      onChange={(e) => {
-                        const formattedValue = formatCpfCnpj(e.target.value)
-                        e.target.value = formattedValue
+                      onChange={e => {
+                        const formattedValue = formatCpfCnpj(e.target.value);
+                        e.target.value = formattedValue;
                       }}
                     />
                     {errors.cnpj && (
@@ -222,7 +224,7 @@ export function EditEmpresaDialog({ empresa }: EditEmpresaDialogProps) {
                           <SelectContent>
                             <SelectGroup>
                               <SelectLabel>Projetos</SelectLabel>
-                              {projetos?.projetos.map((projeto) => (
+                              {projetos?.projetos.map(projeto => (
                                 <SelectItem
                                   key={projeto.projeto_id}
                                   value={projeto.projeto_id.toString()}
@@ -265,7 +267,7 @@ export function EditEmpresaDialog({ empresa }: EditEmpresaDialogProps) {
                             </span>
                           </div>
                         </div>
-                      )
+                      );
                     }}
                   />
 
@@ -292,7 +294,7 @@ export function EditEmpresaDialog({ empresa }: EditEmpresaDialogProps) {
                             </span>
                           </div>
                         </div>
-                      )
+                      );
                     }}
                   />
 
@@ -352,11 +354,11 @@ export function EditEmpresaDialog({ empresa }: EditEmpresaDialogProps) {
                   </Button>
                 </DialogFooter>
               </form>
-            )
+            );
           })}
 
         {isLoading && <EmpresaSkeletonDialog />}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,12 +1,12 @@
-'use client'
+'use client';
 
 import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Skeleton } from '@/components/ui/skeleton'
+} from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function EmpresaSkeletonDialog() {
   return (
@@ -37,5 +37,5 @@ export function EmpresaSkeletonDialog() {
         <Skeleton className="h-10 w-full" />
       </DialogFooter>
     </div>
-  )
+  );
 }

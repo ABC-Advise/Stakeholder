@@ -1,13 +1,13 @@
-import { api } from '../api-client'
+import { api } from '../api-client';
 
 interface UpdateStakeholderRequest {
-  documento: string
-  prospeccao?: boolean
-  stakeholder?: boolean
-  camada_advogados?: boolean
-  camada_stakeholder?: boolean
-  associado?: boolean
-  stakeholder_advogado?: boolean
+  documento: string;
+  prospeccao?: boolean;
+  stakeholder?: boolean;
+  camada_advogados?: boolean;
+  camada_stakeholder?: boolean;
+  associado?: boolean;
+  stakeholder_advogado?: boolean;
 }
 
 export async function updateStakeholder({
@@ -26,7 +26,7 @@ export async function updateStakeholder({
     camada_advogados,
     associado,
     stakeholder_advogado,
-  })
+  });
 
-  return response.data
+  return response.data;
 }

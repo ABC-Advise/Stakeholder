@@ -1,6 +1,10 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -9,51 +13,49 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { useToast } from '@/hooks/use-toast'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
-import { Pessoa } from './columns'
-import { deletePessoa } from '@/http/pessoa/delete-pessoa'
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { deletePessoa } from '@/http/pessoa/delete-pessoa';
+
+import { Pessoa } from './columns';
 
 interface DeletePessoaDialogProps {
-  pessoa: Pessoa
+  pessoa: Pessoa;
 }
 
 export function DeletePessoaDialog({ pessoa }: DeletePessoaDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const { mutateAsync: deletePessoaFn, isPending } = useMutation({
     mutationFn: deletePessoa,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pessoas'] })
+      queryClient.invalidateQueries({ queryKey: ['pessoas'] });
     },
-  })
+  });
 
   async function handleDeletePessoa(id: number) {
     try {
       await deletePessoaFn({
         pessoa_id: pessoa.pessoa_id,
-      })
+      });
 
-      setIsOpen(false)
+      setIsOpen(false);
 
       toast({
         title: 'Pessoa removido!',
         description: 'Você removeu o pessoa com sucesso.',
-      })
+      });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       toast({
         variant: 'destructive',
         title: 'Erro ao tentar remover...',
         description: 'Não foi possível remover o pessoa desejado.',
-      })
+      });
     }
   }
 
@@ -109,5 +111,5 @@ export function DeletePessoaDialog({ pessoa }: DeletePessoaDialogProps) {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

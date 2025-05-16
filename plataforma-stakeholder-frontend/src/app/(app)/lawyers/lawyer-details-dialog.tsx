@@ -1,6 +1,10 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
+import { useQuery } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -10,29 +14,27 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { getOffices } from '@/http/offices/get-offices'
-import { useQuery } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
-import { Lawyer } from './columns'
-import { getLawyers } from '@/http/lawyers/get-lawyers'
-import { LawyerSkeletonDialog } from './lawyer-skeleton-dialog'
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { getLawyers } from '@/http/lawyers/get-lawyers';
+import { getOffices } from '@/http/offices/get-offices';
+
+import { Lawyer } from './columns';
+import { LawyerSkeletonDialog } from './lawyer-skeleton-dialog';
 
 interface LawyerDetailsDialogProps {
-  lawyer: Lawyer
+  lawyer: Lawyer;
 }
 
 export function LawyerDetailsDialog({ lawyer }: LawyerDetailsDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['lawyers', lawyer.advogado_id],
     queryFn: () => getLawyers({ advogado_id: lawyer.advogado_id }),
     enabled: isOpen,
-  })
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -44,7 +46,7 @@ export function LawyerDetailsDialog({ lawyer }: LawyerDetailsDialogProps) {
 
       <DialogContent>
         {data &&
-          data.advogados.map((lawyer) => {
+          data.advogados.map(lawyer => {
             return (
               <form key={lawyer.advogado_id}>
                 <DialogHeader>
@@ -86,11 +88,11 @@ export function LawyerDetailsDialog({ lawyer }: LawyerDetailsDialogProps) {
                   </DialogClose>
                 </DialogFooter>
               </form>
-            )
+            );
           })}
 
         {isLoading && <LawyerSkeletonDialog />}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

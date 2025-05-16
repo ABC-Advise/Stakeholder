@@ -1,19 +1,14 @@
-'use client'
+'use client';
 
-import { useQuery } from '@tanstack/react-query'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { z } from 'zod'
-import { DataTable } from './data-table'
-import { columns } from './columns'
-import { Pagination } from '@/components/pagination'
-import { DataTableSkeleton } from './data-table-skeleton'
-import { ChangeEvent, FormEvent, useState } from 'react'
+import { useQuery } from '@tanstack/react-query';
+import { ChevronDown, FilterX, Plus, Search } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { ChangeEvent, FormEvent, useState } from 'react';
+import { z } from 'zod';
 
-import { Input } from '@/components/ui/input'
-import { ChevronDown, FilterX, Plus, Search } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { CreatePessoaDialog } from './create-pessoa-dialog'
-import { getPessoas } from '@/http/pessoa/get-pessoas'
+import { Pagination } from '@/components/pagination';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -21,27 +16,33 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { getUfs } from '@/http/get-ufs'
-import { getCitiesByUf } from '@/http/get-cities-by-uf'
+} from '@/components/ui/select';
+import { getCitiesByUf } from '@/http/get-cities-by-uf';
+import { getUfs } from '@/http/get-ufs';
+import { getPessoas } from '@/http/pessoa/get-pessoas';
+
+import { columns } from './columns';
+import { CreatePessoaDialog } from './create-pessoa-dialog';
+import { DataTable } from './data-table';
+import { DataTableSkeleton } from './data-table-skeleton';
 
 export default function PessoaPage() {
-  const [isOpenCreateStakeholder, setIsOpenCreateStakeholder] = useState(false)
-  const searchParams = useSearchParams()
+  const [isOpenCreateStakeholder, setIsOpenCreateStakeholder] = useState(false);
+  const searchParams = useSearchParams();
 
-  const [searchType, setSearchType] = useState('cpf')
+  const [searchType, setSearchType] = useState('cpf');
 
-  const pathname = usePathname()
-  const router = useRouter()
+  const pathname = usePathname();
+  const router = useRouter();
 
-  const [selectedUF, setSelectedUF] = useState<string | null>(null)
-  const [selectedCity, setSelectedCity] = useState<string | null>(null)
+  const [selectedUF, setSelectedUF] = useState<string | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
 
   // Busca UFs
   const { data: ufs, isLoading: isLoadingUFs } = useQuery({
     queryKey: ['ufs'],
     queryFn: getUfs,
-  })
+  });
 
   // Busca cidades com base na UF selecionada
   const {
@@ -52,21 +53,21 @@ export default function PessoaPage() {
     queryKey: ['cities', selectedUF],
     queryFn: () => getCitiesByUf(selectedUF!),
     enabled: !!selectedUF, // Só executa quando uma UF for selecionada
-  })
+  });
 
-  const cpf = searchParams.get('cpf') ?? null
-  const nome = searchParams.get('nome') ?? null
-  const sobrenome = searchParams.get('sobrenome') ?? null
+  const cpf = searchParams.get('cpf') ?? null;
+  const nome = searchParams.get('nome') ?? null;
+  const sobrenome = searchParams.get('sobrenome') ?? null;
 
   const page = z.coerce
     .number()
-    .transform((page) => page)
-    .parse(searchParams.get('page') ?? '1')
+    .transform(page => page)
+    .parse(searchParams.get('page') ?? '1');
 
   const size = z.coerce
     .number()
-    .transform((size) => size)
-    .parse(searchParams.get('size') ?? '10')
+    .transform(size => size)
+    .parse(searchParams.get('size') ?? '10');
 
   const { data, isLoading } = useQuery({
     queryKey: [
@@ -89,56 +90,56 @@ export default function PessoaPage() {
         uf: selectedUF,
         cidade: selectedCity,
       }),
-  })
+  });
 
   function handlePaginate(page: number) {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
-    params.set('page', (page + 1).toString())
+    params.set('page', (page + 1).toString());
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   function handleSelectChange(e: ChangeEvent<HTMLSelectElement>) {
-    setSearchType(e.target.value)
+    setSearchType(e.target.value);
   }
 
   function handleFilter(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+    e.preventDefault();
 
-    const data = new FormData(e.currentTarget)
-    const query = data.get('query')?.toString()
+    const data = new FormData(e.currentTarget);
+    const query = data.get('query')?.toString();
 
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
 
     if (query) {
       if (searchType === 'cpf') {
-        params.set('cpf', query)
+        params.set('cpf', query);
       }
 
       if (searchType === 'nome') {
-        params.set('nome', query)
+        params.set('nome', query);
       }
 
       if (searchType === 'sobrenome') {
-        params.set('sobrenome', query)
+        params.set('sobrenome', query);
       }
 
-      router.replace(`${pathname}?${params.toString()}`)
+      router.replace(`${pathname}?${params.toString()}`);
     }
 
-    e.currentTarget.reset()
+    e.currentTarget.reset();
   }
 
   function handleClearFilters() {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
-    params.delete('page')
-    params.delete('size')
-    params.delete('cpf')
-    params.delete('nome')
-    params.delete('sobrenome')
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    params.delete('page');
+    params.delete('size');
+    params.delete('cpf');
+    params.delete('nome');
+    params.delete('sobrenome');
 
-    router.replace(`${pathname}?${params.toString()}`)
+    router.replace(`${pathname}?${params.toString()}`);
   }
 
   return (
@@ -206,7 +207,7 @@ export default function PessoaPage() {
         <div className="flex items-end justify-between">
           <div className="flex items-end gap-2">
             {/* Select de UFs */}
-            <Select onValueChange={(uf) => setSelectedUF(uf)}>
+            <Select onValueChange={uf => setSelectedUF(uf)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Selecione uma UF" />
               </SelectTrigger>
@@ -228,7 +229,7 @@ export default function PessoaPage() {
             </Select>
 
             {/* Select de Cidades */}
-            <Select onValueChange={(city) => setSelectedCity(city)}>
+            <Select onValueChange={city => setSelectedCity(city)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Selecione uma cidade" />
               </SelectTrigger>
@@ -278,5 +279,5 @@ export default function PessoaPage() {
         {isLoading && <DataTableSkeleton />}
       </div>
     </main>
-  )
+  );
 }

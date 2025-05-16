@@ -1,9 +1,10 @@
-'use client'
+'use client';
 
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef } from '@tanstack/react-table';
 
-import { ConsultDetailsDialog } from './consult-details-dialog'
-import { Consulta } from '@/http/consult/get-all-consult'
+import { Consulta } from '@/http/consult/get-all-consult';
+
+import { ConsultDetailsDialog } from './consult-details-dialog';
 
 export const columns: ColumnDef<Consulta>[] = [
   {
@@ -57,4 +58,4 @@ export const columns: ColumnDef<Consulta>[] = [
       </div>
     ),
   },
-]
+];

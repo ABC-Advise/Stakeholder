@@ -1,36 +1,36 @@
-'use client'
+'use client';
 
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef } from '@tanstack/react-table';
+import { MoreHorizontal } from 'lucide-react';
 
-import { MoreHorizontal } from 'lucide-react'
-
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Checkbox } from '@/components/ui/checkbox'
-import { DeleteStakeholderDialog } from './delete-stakeholder-dialog'
-import { EditStakeholderDialog } from './edit-stakeholder-dialog'
-import { UpdateStakeholderDialog } from './update-stakeholder-dialog'
+} from '@/components/ui/dropdown-menu';
+
+import { DeleteStakeholderDialog } from './delete-stakeholder-dialog';
+import { EditStakeholderDialog } from './edit-stakeholder-dialog';
+import { UpdateStakeholderDialog } from './update-stakeholder-dialog';
 
 export type Stakeholder = {
-  entidade_id: number
-  document: string
-  is_CNPJ: boolean
-  nome1: string
-  nome2: string
-  porte_id: number
-  segmento_id: number
-  linkedin: string
-  instagram: string
-  stakeholder: boolean
-  em_prospecao: boolean
-  associado: boolean | null
-}
+  entidade_id: number;
+  document: string;
+  is_CNPJ: boolean;
+  nome1: string;
+  nome2: string;
+  porte_id: number;
+  segmento_id: number;
+  linkedin: string;
+  instagram: string;
+  stakeholder: boolean;
+  em_prospecao: boolean;
+  associado: boolean | null;
+};
 
 export const columns: ColumnDef<Stakeholder>[] = [
   {
@@ -58,7 +58,7 @@ export const columns: ColumnDef<Stakeholder>[] = [
     accessorKey: 'is_CNPJ',
     header: 'Tipo',
     cell: ({ row }) => {
-      console.log(row.original)
+      console.log(row.original);
       return (
         <div className="flex items-center gap-1">
           {row.getValue('is_CNPJ') ? (
@@ -83,14 +83,14 @@ export const columns: ColumnDef<Stakeholder>[] = [
             </div>
           ) : null}
         </div>
-      )
+      );
     },
   },
   {
     id: 'actions',
     enableHiding: false,
     cell: ({ row }) => {
-      const data = row.original
+      const data = row.original;
 
       return (
         <DropdownMenu>
@@ -115,7 +115,7 @@ export const columns: ColumnDef<Stakeholder>[] = [
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
   },
-]
+];

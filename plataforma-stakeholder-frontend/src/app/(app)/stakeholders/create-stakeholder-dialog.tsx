@@ -1,7 +1,13 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogClose,
@@ -9,49 +15,43 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Controller, useForm } from 'react-hook-form'
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { createStakeholder } from '@/http/stakeholders/create-stakeholder';
+import { formatCpfCnpj } from '@/utils/format-cpf-cnpj';
+import { removeNonNumeric } from '@/utils/remove-format';
 
-import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { formatCpfCnpj } from '@/utils/format-cpf-cnpj'
-import { createStakeholder } from '@/http/stakeholders/create-stakeholder'
-import { useToast } from '@/hooks/use-toast'
-import { Loader2 } from 'lucide-react'
-import { removeNonNumeric } from '@/utils/remove-format'
-import { useEffect, useState } from 'react'
-
-const cpfPattern = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/
-const cnpjPattern = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/
+const cpfPattern = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
+const cnpjPattern = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/;
 
 const createStakeholderFormSchema = z.object({
   documento: z
     .string()
     .min(11, { message: 'Este campo deve ter pelo menos 11 caracteres.' })
-    .refine((value) => cpfPattern.test(value) || cnpjPattern.test(value), {
+    .refine(value => cpfPattern.test(value) || cnpjPattern.test(value), {
       message: 'Invalid CPF or CNPJ format',
     }),
   camada_advogados: z.boolean().default(false),
   associado: z.boolean().default(false),
   prospeccao: z.boolean().default(false),
-})
+});
 
-type CreateStakeholderFormSchema = z.infer<typeof createStakeholderFormSchema>
+type CreateStakeholderFormSchema = z.infer<typeof createStakeholderFormSchema>;
 
 interface CreateStakeholderDialogProps {
-  isOpen: boolean
-  setIsOpen: (isOpen: boolean) => void
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
 }
 
 export function CreateStakeholderDialog({
   isOpen,
   setIsOpen,
 }: CreateStakeholderDialogProps) {
-  const { toast } = useToast()
+  const { toast } = useToast();
 
-  const [inputDocumentoLenght, setInputDocumentoLenght] = useState(0)
+  const [inputDocumentoLenght, setInputDocumentoLenght] = useState(0);
 
   const {
     control,
@@ -62,7 +62,7 @@ export function CreateStakeholderDialog({
     formState: { errors, isSubmitting },
   } = useForm<CreateStakeholderFormSchema>({
     resolver: zodResolver(createStakeholderFormSchema),
-  })
+  });
 
   async function handleCreateStakeholder(data: CreateStakeholderFormSchema) {
     try {
@@ -71,24 +71,24 @@ export function CreateStakeholderDialog({
         prospeccao: data.prospeccao,
         camada_advogados: data.camada_advogados,
         associado: data.associado,
-      })
+      });
 
-      setIsOpen(false)
+      setIsOpen(false);
 
-      reset()
+      reset();
 
       toast({
         title: 'Sucesso!',
         description: 'Stakeholder foi cadastrado com sucesso.',
-      })
+      });
     } catch (err) {
-      console.log(err)
+      console.log(err);
 
       toast({
         variant: 'destructive',
         title: 'Ops...',
         description: 'Ocorreu um erro ao tentar cadastrar.',
-      })
+      });
     }
   }
 
@@ -116,11 +116,11 @@ export function CreateStakeholderDialog({
                 minLength={11}
                 maxLength={15}
                 {...register('documento')}
-                onChange={(e) => {
-                  const formattedValue = formatCpfCnpj(e.target.value)
-                  e.target.value = formattedValue
+                onChange={e => {
+                  const formattedValue = formatCpfCnpj(e.target.value);
+                  e.target.value = formattedValue;
 
-                  setInputDocumentoLenght(e.target.value.length)
+                  setInputDocumentoLenght(e.target.value.length);
                 }}
               />
 
@@ -155,7 +155,7 @@ export function CreateStakeholderDialog({
                       </span>
                     </div>
                   </div>
-                )
+                );
               }}
             />
 
@@ -182,7 +182,7 @@ export function CreateStakeholderDialog({
                       </span>
                     </div>
                   </div>
-                )
+                );
               }}
             />
 
@@ -237,7 +237,7 @@ export function CreateStakeholderDialog({
                       </span>
                     </div>
                   </div>
-                )
+                );
               }}
             />
           </div>
@@ -259,5 +259,5 @@ export function CreateStakeholderDialog({
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

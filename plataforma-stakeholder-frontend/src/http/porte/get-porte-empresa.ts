@@ -1,22 +1,22 @@
-import { api } from '../api-client'
+import { api } from '../api-client';
 
 interface GetPorteEmpresaResponseQuery {
-  porte_id?: number | null
-  page?: number | null
-  size?: number | null
+  porte_id?: number | null;
+  page?: number | null;
+  size?: number | null;
 }
 
 export interface GetPorteEmpresaResponse {
   porte_empresas: {
-    porte_id: number
-    descricao: string
-  }[]
+    porte_id: number;
+    descricao: string;
+  }[];
   meta: {
-    total: number
-    page: number
-    size: number
-    pages: number
-  }
+    total: number;
+    page: number;
+    size: number;
+    pages: number;
+  };
 }
 
 export async function getPorteEmpresa({
@@ -30,7 +30,7 @@ export async function getPorteEmpresa({
       page,
       size,
     },
-  })
+  });
 
-  return response.data
+  return response.data;
 }

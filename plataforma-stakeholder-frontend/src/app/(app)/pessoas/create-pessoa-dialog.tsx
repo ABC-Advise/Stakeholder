@@ -1,7 +1,18 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
+import { ChevronDown, Loader2 } from 'lucide-react';
+import { Controller, useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Dialog,
   DialogClose,
@@ -9,22 +20,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Controller, useForm } from 'react-hook-form'
-
-import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { formatCpfCnpj } from '@/utils/format-cpf-cnpj'
-import { useToast } from '@/hooks/use-toast'
-import { ChevronDown, Loader2 } from 'lucide-react'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
-import { createPessoa } from '@/http/pessoa/create-pessoa'
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -33,15 +31,17 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { useQuery } from '@tanstack/react-query'
-import { getProjetos } from '@/http/projetos/get-projetos'
+} from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { createPessoa } from '@/http/pessoa/create-pessoa';
+import { getProjetos } from '@/http/projetos/get-projetos';
+import { formatCpfCnpj } from '@/utils/format-cpf-cnpj';
 
-const cpfPattern = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/
-const cnpjPattern = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/
+const cpfPattern = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
+const cnpjPattern = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/;
 
 function removeNonNumeric(value: string) {
-  return value.replace(/\D/g, '') // Remove todos os caracteres não numéricos
+  return value.replace(/\D/g, ''); // Remove todos os caracteres não numéricos
 }
 
 const createFormSchema = z.object({
@@ -57,20 +57,20 @@ const createFormSchema = z.object({
   instagram: z.string().optional(),
   linkedin: z.string().optional(),
   projeto: z.string().optional(),
-})
+});
 
-type CreateFormSchema = z.infer<typeof createFormSchema>
+type CreateFormSchema = z.infer<typeof createFormSchema>;
 
 interface CreatePessoaDialogProps {
-  isOpen: boolean
-  setIsOpen: (isOpen: boolean) => void
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
 }
 
 export function CreatePessoaDialog({
   isOpen,
   setIsOpen,
 }: CreatePessoaDialogProps) {
-  const { toast } = useToast()
+  const { toast } = useToast();
 
   const {
     control,
@@ -80,13 +80,13 @@ export function CreatePessoaDialog({
     formState: { errors, isSubmitting },
   } = useForm<CreateFormSchema>({
     resolver: zodResolver(createFormSchema),
-  })
+  });
 
   const { data: projetos, isLoading: isLoadingProjetos } = useQuery({
     queryKey: ['projetos'],
     queryFn: () => getProjetos({}),
     enabled: isOpen,
-  })
+  });
 
   async function handleCreatePessoa(data: CreateFormSchema) {
     try {
@@ -99,24 +99,24 @@ export function CreatePessoaDialog({
         instagram: data.instagram,
         linkedin: data.linkedin,
         projeto_id: Number(data.projeto),
-      })
+      });
 
-      setIsOpen(false)
+      setIsOpen(false);
 
-      reset()
+      reset();
 
       toast({
         title: 'Sucesso!',
         description: 'Pessoa foi cadastrado com sucesso.',
-      })
+      });
     } catch (err) {
-      console.log(err)
+      console.log(err);
 
       toast({
         variant: 'destructive',
         title: 'Ops...',
         description: 'Ocorreu um erro ao tentar cadastrar.',
-      })
+      });
     }
   }
 
@@ -157,9 +157,9 @@ export function CreatePessoaDialog({
                 minLength={11}
                 maxLength={15}
                 {...register('cpf')}
-                onChange={(e) => {
-                  const formattedValue = formatCpfCnpj(e.target.value)
-                  e.target.value = formattedValue
+                onChange={e => {
+                  const formattedValue = formatCpfCnpj(e.target.value);
+                  e.target.value = formattedValue;
                 }}
               />
               {errors.cpf && (
@@ -181,7 +181,7 @@ export function CreatePessoaDialog({
                     <SelectContent>
                       <SelectGroup>
                         <SelectLabel>Projetos</SelectLabel>
-                        {projetos?.projetos.map((projeto) => (
+                        {projetos?.projetos.map(projeto => (
                           <SelectItem
                             key={projeto.projeto_id}
                             value={projeto.projeto_id.toString()}
@@ -222,7 +222,7 @@ export function CreatePessoaDialog({
                       </span>
                     </div>
                   </div>
-                )
+                );
               }}
             />
 
@@ -249,7 +249,7 @@ export function CreatePessoaDialog({
                       </span>
                     </div>
                   </div>
-                )
+                );
               }}
             />
 
@@ -302,5 +302,5 @@ export function CreatePessoaDialog({
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
