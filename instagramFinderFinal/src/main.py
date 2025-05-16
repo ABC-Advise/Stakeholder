@@ -15,7 +15,7 @@ load_dotenv()
 # Configuração do CORS
 BACKEND_CORS_ORIGINS = os.getenv(
     "BACKEND_CORS_ORIGINS",
-    "http://localhost:3000,http://localhost:8000"
+    "http://localhost:3000,http://localhost:8000,https://frontend-stakeholder-production.up.railway.app"
 ).split(",")
 
 app = FastAPI(
@@ -29,8 +29,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[origin.strip() for origin in BACKEND_CORS_ORIGINS],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Permite todos os métodos
+    allow_headers=["*"],  # Permite todos os headers
+    expose_headers=["*"],  # Expõe todos os headers
+    max_age=3600,  # Cache das configurações CORS por 1 hora
 )
 
 @app.get("/health", tags=["Health"])
