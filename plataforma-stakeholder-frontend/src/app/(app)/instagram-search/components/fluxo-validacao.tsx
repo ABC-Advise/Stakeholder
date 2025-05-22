@@ -204,11 +204,11 @@ export default function FluxoValidacaoPage() {
                 {/* Coluna 2: Informações do processo */}
                 {showWebhookInfo && (
                     <div className="flex-1">
-                        <Card className="bg-white border border-zinc-200 shadow-md h-full">
+                        <Card className="bg-white border border-zinc-200 shadow-md h-full max-h-[500px] flex flex-col">
                             <CardHeader>
                                 <CardTitle className="text-zinc-900 text-xl font-bold text-center">Informações do processo</CardTitle>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="overflow-y-auto flex-1">
                                 {isLoading ? (
                                     <div className="flex flex-col items-center justify-center gap-2 py-4">
                                         <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />

@@ -1,6 +1,5 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Toaster } from 'sonner';
 import { ReactQueryProvider } from '@/providers/react-query-provider';
 
 export const metadata: Metadata = {
@@ -17,7 +16,6 @@ export default function RootLayout({
       <body>
         <ReactQueryProvider>
           {children}
-          <Toaster richColors />
         </ReactQueryProvider>
       </body>
     </html>
