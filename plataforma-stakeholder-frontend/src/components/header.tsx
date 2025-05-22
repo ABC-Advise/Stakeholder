@@ -167,6 +167,9 @@ export function Header() {
           <NavLink href="/instagram-search/relacionados">
             Relacionados Instagram
           </NavLink>
+          <NavLink href="/instagram-search/fluxo-validacao">
+            Fluxo de Validação
+          </NavLink>
         </div>
       </div>
 
